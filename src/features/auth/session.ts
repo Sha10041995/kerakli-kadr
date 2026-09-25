@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import type { Enums } from "@/types/database";
@@ -26,6 +27,7 @@ export type CurrentUser = {
 
 /** The signed-in user with roles (request-scoped cache). Null when signed out. */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+  await connection(); // always per-request
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();

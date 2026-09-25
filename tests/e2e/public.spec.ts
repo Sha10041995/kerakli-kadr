@@ -1,0 +1,71 @@
+import { expect, test } from "@playwright/test";
+
+test.describe("public pages", () => {
+  test("home page shows hero, search and local talent", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("oʻz hududingizdan toping");
+    await expect(page.getByRole("tab", { name: "Ish qidiryapman" })).toBeVisible();
+    await expect(page.getByText("Hududingizdagi kadrlar")).toBeVisible();
+    await expect(page.getByText("DEMO").first()).toBeHidden(); // demo badge only on detail pages
+  });
+
+  test("location-first search from the home page", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Viloyat").first().selectOption({ label: "Xorazm viloyati" });
+    const district = page.getByLabel("Tuman yoki shahar").first();
+    await expect(district.locator("option", { hasText: "Urganch shahri" })).toHaveCount(1);
+    await district.selectOption({ label: "Urganch shahri" });
+    await page.getByRole("button", { name: "Qidirish" }).click();
+    await page.waitForURL(/\/jobs\?.*district=/);
+    await expect(page.getByText("ta vakansiya topildi")).toBeVisible();
+    // exact-district results are labelled and come first
+    await expect(page.getByText("Tumaningizda").first()).toBeVisible();
+  });
+
+  test("SEO location pages resolve and unknown slugs 404", async ({ page }) => {
+    const ok = await page.goto("/jobs/xorazm/urganch-shahri");
+    expect(ok?.status()).toBe(200);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Urganch shahridagi ish oʻrinlari");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/jobs\/xorazm\/urganch-shahri$/);
+
+    const talent = await page.goto("/candidates/toshkent/elektrik");
+    expect(talent?.status()).toBe(200);
+    await expect(page.getByText(/ta elektrik mavjud/)).toBeVisible();
+
+    const missing = await page.goto("/jobs/mars/olympus");
+    expect(missing?.status()).toBe(404);
+  });
+
+  test("vacancy detail has structured data and asks guests to log in", async ({ page }) => {
+    await page.goto("/jobs");
+    await page.getByRole("link", { name: "Batafsil" }).first().click();
+    await page.waitForURL(/\/vacancy\//);
+    await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
+    await expect(page.getByText("Ariza yuborish uchun tizimga kiring.")).toBeVisible();
+  });
+
+  test("candidate profiles never expose phone numbers", async ({ page }) => {
+    await page.goto("/candidates");
+    await page.getByRole("link", { name: "Profilni koʻrish" }).first().click();
+    await page.waitForURL(/\/candidate\//);
+    const html = await page.content();
+    expect(html).not.toMatch(/\+99890\d{7}/);
+    await expect(page.getByText("Telefon raqam ommaga koʻrsatilmaydi")).toBeVisible();
+  });
+
+  test("security headers are set", async ({ request }) => {
+    const res = await request.get("/");
+    const h = res.headers();
+    expect(h["content-security-policy"]).toContain("frame-ancestors 'none'");
+    expect(h["x-content-type-options"]).toBe("nosniff");
+    expect(h["x-frame-options"]).toBe("DENY");
+    expect(h["x-powered-by"]).toBeUndefined();
+  });
+
+  test("robots and sitemap", async ({ request }) => {
+    expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /dashboard");
+    const sitemap = await (await request.get("/sitemap.xml")).text();
+    expect(sitemap).toContain("/jobs/xorazm/urganch-shahri");
+    expect(sitemap).toContain("/vacancy/");
+  });
+});

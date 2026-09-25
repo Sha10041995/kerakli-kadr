@@ -191,7 +191,7 @@ begin
 
   perform public.create_notification(
     new.user_id, 'verification',
-    case when new.status = 'approved' then 'Tasdiqlash so‘rovingiz qabul qilindi' else 'Tasdiqlash so‘rovingiz rad etildi' end,
+    case when new.status = 'approved' then 'Tasdiqlash soʻrovingiz qabul qilindi' else 'Tasdiqlash soʻrovingiz rad etildi' end,
     new.admin_note, '/dashboard', jsonb_build_object('request_id', new.id));
   return new;
 end;

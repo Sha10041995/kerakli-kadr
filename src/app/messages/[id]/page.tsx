@@ -28,7 +28,7 @@ export default async function ConversationPage(props: PageProps<"/messages/[id]"
         </div>
         {data.other?.id ? <ReportButton targetType="user" targetId={data.other.id} /> : null}
       </div>
-      <ChatThread conversationId={id} meId={user.id} initial={data.messages} />
+      <ChatThread key={data.messages.at(-1)?.id ?? "empty"} conversationId={id} meId={user.id} initial={data.messages} />
     </Container>
   );
 }

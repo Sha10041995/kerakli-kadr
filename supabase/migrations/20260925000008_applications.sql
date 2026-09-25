@@ -219,8 +219,8 @@ begin
     values (new.id, old.status, new.status, auth.uid());
 
     v_label := case new.status
-      when 'viewed' then 'Arizangiz ko‘rib chiqildi'
-      when 'shortlisted' then 'Siz saralangan nomzodlar ro‘yxatidasiz'
+      when 'viewed' then 'Arizangiz koʻrib chiqildi'
+      when 'shortlisted' then 'Siz saralangan nomzodlar roʻyxatidasiz'
       when 'interview' then 'Sizni suhbatga taklif qilishdi'
       when 'offered' then 'Sizga ish taklif qilindi'
       when 'hired' then 'Tabriklaymiz! Siz ishga qabul qilindingiz'

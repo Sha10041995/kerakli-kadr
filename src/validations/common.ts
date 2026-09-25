@@ -2,7 +2,8 @@ import { z } from "zod";
 
 export const idSchema = z.number().int().positive();
 export const optionalId = z.number().int().positive().nullable().optional();
-export const uuidSchema = z.uuid({ error: "Notoʻgʻri identifikator" });
+// z.guid(): any 8-4-4-4-12 hex id (Postgres uuid accepts non-RFC variants too).
+export const uuidSchema = z.guid({ error: "Notoʻgʻri identifikator" });
 
 /** +998 90 123 45 67 → +998901234567 */
 export function normalizePhone(value: string): string {

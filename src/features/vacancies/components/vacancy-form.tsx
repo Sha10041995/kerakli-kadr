@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Checkbox, Field, FieldError, Input, Select, Textarea } from "@/components/ui/form";
 import { Alert, Card } from "@/components/ui/misc";
@@ -27,14 +27,14 @@ const num = { setValueAs: (v: unknown) => (v === "" || v === null || v === undef
 export function VacancyForm({ id, defaults, regions, catalog, skills, professionSkills }: Props) {
   const router = useRouter();
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
-  const { register, handleSubmit, setValue, watch, formState, setError } = useForm<VacancyInput, unknown, VacancyData>({
+  const { register, handleSubmit, setValue, control, formState, setError } = useForm<VacancyInput, unknown, VacancyData>({
     resolver: zodResolver(vacancySchema),
     defaultValues: defaults,
   });
   const errors = formState.errors;
-  const professionId = watch("professionId");
-  const salaryType = watch("salaryType");
-  const selectedSkills = watch("skillIds");
+  const professionId = useWatch({ control, name: "professionId" });
+  const salaryType = useWatch({ control, name: "salaryType" });
+  const selectedSkills = useWatch({ control, name: "skillIds" });
 
   const professionList = useMemo(() => catalog.flatMap((c) => c.professions), [catalog]);
   const visibleSkills = useMemo(() => {

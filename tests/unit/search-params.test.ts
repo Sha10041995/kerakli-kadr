@@ -99,3 +99,13 @@ describe("SEO route resolution", () => {
     expect(seoPath("candidates", r)).toBe("/candidates/xorazm/urganch-shahri/payvandchi");
   });
 });
+
+describe("uuid validation", () => {
+  it("accepts any Postgres uuid (including non-RFC variants) and rejects junk", async () => {
+    const { uuidSchema } = await import("@/validations/common");
+    expect(uuidSchema.safeParse("00000000-0000-4000-c000-000000000001").success).toBe(true);
+    expect(uuidSchema.safeParse("5f0c3a8e-1b2d-4c3e-9f00-123456789abc").success).toBe(true);
+    expect(uuidSchema.safeParse("1 OR 1=1").success).toBe(false);
+    expect(uuidSchema.safeParse("../../etc/passwd").success).toBe(false);
+  });
+});

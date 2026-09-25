@@ -16,7 +16,9 @@
     "format:check": "prettier --check .",
     "db:types": "node scripts/gen-db-types.mjs",
     "db:reference": "node scripts/generate-reference-sql.mjs",
-    "check": "npm run typecheck && npm run lint && npm test && npm run build"
+    "check": "npm run typecheck && npm run lint && npm test && npm run build",
+    "stack:setup": "node scripts/local-stack/setup.mjs",
+    "stack:start": "node scripts/local-stack/start.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

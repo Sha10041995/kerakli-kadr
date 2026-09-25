@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { fail, toUserMessage, type ActionResult } from "@/lib/errors";
@@ -31,7 +30,18 @@ export async function startConversationAction(input: unknown): Promise<ActionRes
   return { ok: true, data: { conversationId: data } };
 }
 
-export async function sendMessageAction(formData: FormData): Promise<ActionResult<{ warning: string | null }>> {
+export type SentMessage = {
+  id: string;
+  sender_id: string | null;
+  body: string | null;
+  kind: string;
+  attachment_path: string | null;
+  attachment_name: string | null;
+  is_flagged: boolean;
+  created_at: string;
+};
+
+export async function sendMessageAction(formData: FormData): Promise<ActionResult<{ warning: string | null; message: SentMessage | null }>> {
   const conversationId = String(formData.get("conversationId") ?? "");
   const body = String(formData.get("body") ?? "");
   const file = formData.get("file");
@@ -56,7 +66,7 @@ export async function sendMessageAction(formData: FormData): Promise<ActionResul
   }
 
   const analysis = analyzeMessage(body);
-  const { error } = await supabase.from("messages").insert({
+  const { data: inserted, error } = await supabase.from("messages").insert({
     conversation_id: conversationId,
     sender_id: userId,
     body: body.trim() || null,
@@ -64,10 +74,11 @@ export async function sendMessageAction(formData: FormData): Promise<ActionResul
     attachment_path: attachment?.path ?? null,
     attachment_name: attachment?.name ?? null,
     attachment_mime: attachment?.mime ?? null,
-  });
+  })
+    .select("id, sender_id, body, kind, attachment_path, attachment_name, is_flagged, created_at")
+    .single();
   if (error) return fail(toUserMessage(error));
-  revalidatePath(`/messages/${conversationId}`);
-  return { ok: true, data: { warning: analysis.warning } };
+  return { ok: true, data: { warning: analysis.warning, message: inserted } };
 }
 
 export async function markConversationReadAction(conversationId: string) {

@@ -47,7 +47,7 @@ insert into public.roles (code, name_uz, description) values
   ('company', 'Kompaniya', 'Tasdiqlangan kompaniya hisobi'),
   ('admin', 'Administrator', 'Platforma administratori'),
   ('moderator', 'Moderator', 'Kontent moderatori'),
-  ('super_admin', 'Super administrator', 'To‘liq huquqli administrator'),
+  ('super_admin', 'Super administrator', 'Toʻliq huquqli administrator'),
   ('partner', 'Hamkor', 'Kelajakdagi hamkorlar uchun'),
   ('recruiter', 'Rekruter', 'Kompaniya nomidan ishlovchi rekruter');
 

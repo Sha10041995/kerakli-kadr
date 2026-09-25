@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Checkbox, Field, FieldError, Input } from "@/components/ui/form";
 import { Alert } from "@/components/ui/misc";
@@ -17,11 +17,11 @@ export function RegisterForm({ defaultRole }: { defaultRole?: "job_seeker" | "em
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
-  const { register, handleSubmit, watch, setValue, formState } = useForm<RegisterInput>({
+  const { register, handleSubmit, control, setValue, formState } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: { role: defaultRole, firstName: "", lastName: "", email: "", phone: "", password: "" },
   });
-  const role = watch("role");
+  const role = useWatch({ control, name: "role" });
   const errors = formState.errors;
 
   const onSubmit = handleSubmit(async (values) => {

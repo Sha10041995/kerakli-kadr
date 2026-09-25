@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Checkbox, Field, FieldError, Input, Select, Textarea } from "@/components/ui/form";
 import { Alert, Card } from "@/components/ui/misc";
@@ -29,14 +29,14 @@ export function CandidateProfileForm({ defaults, regions, catalog, skills, profe
   const router = useRouter();
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [skillFilter, setSkillFilter] = useState("");
-  const { register, handleSubmit, control, watch, setValue, formState, setError } = useForm<
+  const { register, handleSubmit, control, setValue, formState, setError } = useForm<
     CandidateProfileInput,
     unknown,
     CandidateProfileData
   >({ resolver: zodResolver(candidateProfileSchema), defaultValues: defaults });
   const errors = formState.errors;
-  const professionId = watch("professionId");
-  const selectedSkills = watch("skillIds");
+  const professionId = useWatch({ control, name: "professionId" });
+  const selectedSkills = useWatch({ control, name: "skillIds" });
 
   const orderedSkills = useMemo(() => {
     const suggested = new Set(professionId ? (professionSkills[professionId] ?? []) : []);

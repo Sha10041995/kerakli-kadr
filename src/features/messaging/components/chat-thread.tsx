@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/form";
 import { getBrowserClient } from "@/lib/supabase/client";
@@ -37,6 +38,7 @@ function Attachment({ path, name }: { path: string; name: string | null }) {
 }
 
 export function ChatThread({ conversationId, meId, initial }: { conversationId: string; meId: string; initial: ChatMessage[] }) {
+  const router = useRouter();
   const [messages, setMessages] = useState(initial);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -60,10 +62,16 @@ export function ChatThread({ conversationId, meId, initial }: { conversationId: 
         },
       )
       .subscribe();
+    // Fallback when Realtime is unavailable: refresh server data periodically
+    // (the page re-mounts this component with fresh messages).
+    const poll = setInterval(() => {
+      if (channel.state !== "joined") router.refresh();
+    }, 10_000);
     return () => {
+      clearInterval(poll);
       void supabase.removeChannel(channel);
     };
-  }, [conversationId, meId]);
+  }, [conversationId, meId, router]);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: "end" });
@@ -80,6 +88,8 @@ export function ChatThread({ conversationId, meId, initial }: { conversationId: 
       setError(null);
       const res = await sendMessageAction(fd);
       if (!res.ok) return setError(res.error);
+      const sent = res.data?.message;
+      if (sent) setMessages((prev) => (prev.some((x) => x.id === sent.id) ? prev : [...prev, sent]));
       setBody("");
       if (fileRef.current) fileRef.current.value = "";
     });

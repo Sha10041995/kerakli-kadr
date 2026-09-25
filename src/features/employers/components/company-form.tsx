@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { Alert, Card } from "@/components/ui/misc";
@@ -15,12 +15,12 @@ import { companySchema, type CompanyInput } from "@/validations/company";
 export function CompanyForm({ defaults, regions, isNew }: { defaults: CompanyInput; regions: { id: number; name: string }[]; isNew: boolean }) {
   const router = useRouter();
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
-  const { register, handleSubmit, setValue, watch, formState } = useForm<CompanyInput>({
+  const { register, handleSubmit, setValue, control, formState } = useForm<CompanyInput>({
     resolver: zodResolver(companySchema),
     defaultValues: defaults,
   });
   const errors = formState.errors;
-  const type = watch("companyType");
+  const type = useWatch({ control, name: "companyType" });
 
   const onSubmit = handleSubmit(async (values) => {
     const res = await saveCompanyAction(values);

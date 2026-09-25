@@ -111,3 +111,8 @@ export function safeRedirectPath(next: string | null | undefined, fallback = "/d
   if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\") || /[\r\n]/.test(next)) return fallback;
   return next;
 }
+
+/** ISO timestamp for N days before now (server-side helpers). */
+export function daysAgoIso(days: number): string {
+  return new Date(Date.now() - days * 86_400_000).toISOString();
+}

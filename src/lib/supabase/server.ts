@@ -8,10 +8,12 @@ export type AppSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 /** Supabase client bound to the current request's auth cookies (RLS applies). */
 export async function createClient() {
+  // Reading cookies first marks the route as dynamic (per-request) even when
+  // Supabase is not configured yet, so user-specific pages are never prerendered.
+  const cookieStore = await cookies();
   if (!isSupabaseConfigured()) {
     throw new Error("Supabase is not configured (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY).");
   }
-  const cookieStore = await cookies();
   return createServerClient<Database>(env.supabaseUrl, env.supabaseAnonKey, {
     cookies: {
       getAll() {

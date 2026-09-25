@@ -46,7 +46,7 @@ export default async function MyApplicationsPage() {
                 ) : null}
                 <div className="flex flex-wrap items-center gap-3">
                   {candidateCanWithdraw(a.status) ? (
-                    <ConfirmButton confirmText="Arizani qaytarib olasizmi?" onConfirm={() => withdrawApplicationAction(a.id)}>Arizani qaytarib olish</ConfirmButton>
+                    <ConfirmButton confirmText="Arizani qaytarib olasizmi?" onConfirm={withdrawApplicationAction.bind(null, a.id)}>Arizani qaytarib olish</ConfirmButton>
                   ) : null}
                 </div>
                 {a.status === "hired" && !(a.reviews ?? []).some((r) => r.reviewer_id === user.id) ? (

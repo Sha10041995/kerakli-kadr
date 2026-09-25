@@ -216,8 +216,8 @@ begin
     end if;
   end if;
 
-  perform public.create_notification(v_payment.user_id, 'payment', 'To‘lov qabul qilindi',
-    v_payment.amount_uzs || ' so‘m', '/dashboard/billing', jsonb_build_object('payment_id', v_payment.id));
+  perform public.create_notification(v_payment.user_id, 'payment', 'Toʻlov qabul qilindi',
+    v_payment.amount_uzs || ' soʻm', '/dashboard/billing', jsonb_build_object('payment_id', v_payment.id));
 end;
 $$;
 

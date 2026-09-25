@@ -44,7 +44,7 @@ export default async function SavedPage() {
                     <Link href={href} className="font-medium text-slate-900 hover:text-brand-700">{s.name}</Link>
                     <p className="text-xs text-slate-500">{s.kind === "vacancies" ? "Vakansiyalar" : "Nomzodlar"} · {s.last_notified_at ? `oxirgi xabar ${timeAgo(s.last_notified_at)}` : "hali mos eʼlon chiqmadi"}</p>
                   </div>
-                  <ConfirmButton onConfirm={() => deleteSavedSearchAction(s.id)}>Oʻchirish</ConfirmButton>
+                  <ConfirmButton onConfirm={deleteSavedSearchAction.bind(null, s.id)}>Oʻchirish</ConfirmButton>
                 </Card>
               );
             })}

@@ -19,14 +19,23 @@ export function ReviewForm({ applicationId, label = "Sharh qoldiring" }: { appli
       <p className="text-sm font-medium text-slate-800">{label}</p>
       <div className="flex gap-1" role="radiogroup" aria-label="Baho">
         {[1, 2, 3, 4, 5].map((n) => (
-          <button key={n} type="button" role="radio" aria-checked={rating === n} aria-label={`${n} yulduz`} onClick={() => setRating(n)}
-            className={cn("rounded p-0.5", n <= rating ? "text-amber-500" : "text-slate-300")}>
+          <button
+            key={n}
+            type="button"
+            role="radio"
+            aria-checked={rating === n}
+            aria-label={`${n} yulduz`}
+            onClick={() => setRating(n)}
+            className={cn("rounded p-0.5", n <= rating ? "text-amber-500" : "text-slate-300")}
+          >
             <StarIcon size={22} />
           </button>
         ))}
       </div>
       <Textarea name="comment" rows={2} maxLength={2000} placeholder="Ixtiyoriy izoh" aria-label="Izoh" />
-      <Button type="submit" size="sm">Yuborish</Button>
+      <Button type="submit" size="sm">
+        Yuborish
+      </Button>
     </ActionForm>
   );
 }

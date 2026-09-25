@@ -24,7 +24,12 @@ export const optionalPhone = z
   .trim()
   .optional()
   .transform((v) => (v ? normalizePhone(v) : undefined))
-  .pipe(z.string().regex(/^\+998\d{9}$/, { error: "Telefon raqam +998 XX XXX XX XX formatida boʻlsin" }).optional());
+  .pipe(
+    z
+      .string()
+      .regex(/^\+998\d{9}$/, { error: "Telefon raqam +998 XX XXX XX XX formatida boʻlsin" })
+      .optional(),
+  );
 
 export const moneySchema = z.number().int().min(0).max(10_000_000_000).nullable().optional();
 

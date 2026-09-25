@@ -2,10 +2,22 @@ import { describe, expect, it } from "vitest";
 import { computeMatch, DEFAULT_WEIGHTS, normalizeWeights, rankByMatch, type MatchFeatures } from "@/features/matching/score";
 
 const base: MatchFeatures = {
-  sameProfession: true, sameCategory: true, locationTier: 3, distanceKm: 3, experienceYears: 5,
-  requiredExperience: 2, availability: "immediately", expectedSalaryMin: 5_000_000, expectedSalaryMax: 7_000_000,
-  vacancySalaryMin: 5_000_000, vacancySalaryMax: 8_000_000, ratingAvg: 4.8, ratingCount: 3, completeness: 90,
-  skillsMatched: 3, skillsRequired: 3,
+  sameProfession: true,
+  sameCategory: true,
+  locationTier: 3,
+  distanceKm: 3,
+  experienceYears: 5,
+  requiredExperience: 2,
+  availability: "immediately",
+  expectedSalaryMin: 5_000_000,
+  expectedSalaryMax: 7_000_000,
+  vacancySalaryMin: 5_000_000,
+  vacancySalaryMax: 8_000_000,
+  ratingAvg: 4.8,
+  ratingCount: 3,
+  completeness: 90,
+  skillsMatched: 3,
+  skillsRequired: 3,
 };
 
 describe("computeMatch", () => {
@@ -45,17 +57,32 @@ describe("computeMatch", () => {
   });
 
   it("respects custom weights", () => {
-    const onlyDistance = normalizeWeights({ ...Object.fromEntries(Object.keys(DEFAULT_WEIGHTS).map((k) => [k, 0])), distance: 100 });
+    const onlyDistance = normalizeWeights({
+      ...Object.fromEntries(Object.keys(DEFAULT_WEIGHTS).map((k) => [k, 0])),
+      distance: 100,
+    });
     expect(computeMatch({ ...base, distanceKm: 5 }, onlyDistance).score).toBe(100);
     expect(computeMatch({ ...base, distanceKm: 100 }, onlyDistance).score).toBe(0);
   });
 
   it("stays within 0..100 for empty features", () => {
     const r = computeMatch({
-      sameProfession: null, sameCategory: null, locationTier: null, distanceKm: null, experienceYears: null,
-      requiredExperience: null, availability: null, expectedSalaryMin: null, expectedSalaryMax: null,
-      vacancySalaryMin: null, vacancySalaryMax: null, ratingAvg: null, ratingCount: null, completeness: null,
-      skillsMatched: null, skillsRequired: null,
+      sameProfession: null,
+      sameCategory: null,
+      locationTier: null,
+      distanceKm: null,
+      experienceYears: null,
+      requiredExperience: null,
+      availability: null,
+      expectedSalaryMin: null,
+      expectedSalaryMax: null,
+      vacancySalaryMin: null,
+      vacancySalaryMax: null,
+      ratingAvg: null,
+      ratingCount: null,
+      completeness: null,
+      skillsMatched: null,
+      skillsRequired: null,
     });
     expect(r.score).toBeGreaterThanOrEqual(0);
     expect(r.score).toBeLessThanOrEqual(100);

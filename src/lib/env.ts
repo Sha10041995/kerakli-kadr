@@ -17,7 +17,6 @@ export function serverEnv() {
   return {
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
     paymentProvider: process.env.PAYMENT_PROVIDER ?? "mock",
-    paymentsMockEnabled:
-      process.env.PAYMENTS_MOCK_ENABLED === "true" && process.env.NODE_ENV !== "production",
+    paymentsMockEnabled: process.env.PAYMENTS_MOCK_ENABLED === "true" && process.env.NODE_ENV !== "production",
   };
 }

@@ -15,11 +15,23 @@ export default async function EditVacancyPage(props: PageProps<"/dashboard/vacan
   const user = await requireEmployer(`/dashboard/vacancies/${id}/edit`);
   const vacancy = await getVacancy(id);
   if (!vacancy || vacancy.company_id !== user.companyId) notFound();
-  const [regions, catalog, skills, professionSkills] = await Promise.all([getRegions(), getCatalog(), getSkills(), getProfessionSkillsMap()]);
+  const [regions, catalog, skills, professionSkills] = await Promise.all([
+    getRegions(),
+    getCatalog(),
+    getSkills(),
+    getProfessionSkillsMap(),
+  ]);
   return (
     <>
       <PageHeader title="Vakansiyani tahrirlash" description={vacancy.title} />
-      <VacancyForm id={id} defaults={vacancyToInput(vacancy)} regions={regions} catalog={catalog} skills={skills} professionSkills={professionSkills} />
+      <VacancyForm
+        id={id}
+        defaults={vacancyToInput(vacancy)}
+        regions={regions}
+        catalog={catalog}
+        skills={skills}
+        professionSkills={professionSkills}
+      />
     </>
   );
 }

@@ -41,7 +41,9 @@ export type SentMessage = {
   created_at: string;
 };
 
-export async function sendMessageAction(formData: FormData): Promise<ActionResult<{ warning: string | null; message: SentMessage | null }>> {
+export async function sendMessageAction(
+  formData: FormData,
+): Promise<ActionResult<{ warning: string | null; message: SentMessage | null }>> {
   const conversationId = String(formData.get("conversationId") ?? "");
   const body = String(formData.get("body") ?? "");
   const file = formData.get("file");
@@ -66,15 +68,17 @@ export async function sendMessageAction(formData: FormData): Promise<ActionResul
   }
 
   const analysis = analyzeMessage(body);
-  const { data: inserted, error } = await supabase.from("messages").insert({
-    conversation_id: conversationId,
-    sender_id: userId,
-    body: body.trim() || null,
-    kind: attachment ? (attachment.mime.startsWith("image/") ? "image" : "document") : "text",
-    attachment_path: attachment?.path ?? null,
-    attachment_name: attachment?.name ?? null,
-    attachment_mime: attachment?.mime ?? null,
-  })
+  const { data: inserted, error } = await supabase
+    .from("messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: userId,
+      body: body.trim() || null,
+      kind: attachment ? (attachment.mime.startsWith("image/") ? "image" : "document") : "text",
+      attachment_path: attachment?.path ?? null,
+      attachment_name: attachment?.name ?? null,
+      attachment_mime: attachment?.mime ?? null,
+    })
     .select("id, sender_id, body, kind, attachment_path, attachment_name, is_flagged, created_at")
     .single();
   if (error) return fail(toUserMessage(error));

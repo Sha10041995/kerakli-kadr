@@ -49,7 +49,9 @@ export function ActionForm({
         {children}
       </fieldset>
       {msg ? (
-        <p role="status" className={msg.ok ? "mt-2 text-sm text-emerald-700" : "mt-2 text-sm text-red-600"}>{msg.text}</p>
+        <p role="status" className={msg.ok ? "mt-2 text-sm text-emerald-700" : "mt-2 text-sm text-red-600"}>
+          {msg.text}
+        </p>
       ) : null}
     </form>
   );
@@ -86,7 +88,11 @@ export function ConfirmButton({
       >
         {children}
       </button>
-      {error ? <span role="alert" className="ml-2 text-xs text-red-600">{error}</span> : null}
+      {error ? (
+        <span role="alert" className="ml-2 text-xs text-red-600">
+          {error}
+        </span>
+      ) : null}
     </>
   );
 }

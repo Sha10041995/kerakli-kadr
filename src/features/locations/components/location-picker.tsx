@@ -67,7 +67,9 @@ export function LocationPicker({ regions, value, onChange, names, depth = 4, com
   useEffect(() => {
     if (!settlementKey) return;
     let alive = true;
-    fetchChildren("settlements", Number(settlementKey)).then((items) => alive && setSettlementData({ key: settlementKey, items }));
+    fetchChildren("settlements", Number(settlementKey)).then(
+      (items) => alive && setSettlementData({ key: settlementKey, items }),
+    );
     return () => {
       alive = false;
     };
@@ -77,7 +79,9 @@ export function LocationPicker({ regions, value, onChange, names, depth = 4, com
     if (!mahallaKey) return;
     let alive = true;
     const [d, s] = mahallaKey.split(":");
-    fetchChildren("mahallas", Number(d), s ? Number(s) : null).then((items) => alive && setMahallaData({ key: mahallaKey, items }));
+    fetchChildren("mahallas", Number(d), s ? Number(s) : null).then(
+      (items) => alive && setMahallaData({ key: mahallaKey, items }),
+    );
     return () => {
       alive = false;
     };
@@ -109,7 +113,9 @@ export function LocationPicker({ regions, value, onChange, names, depth = 4, com
         >
           <option value="">Butun Oʻzbekiston</option>
           {regions.map((r) => (
-            <option key={r.id} value={r.id}>{r.name}</option>
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
           ))}
         </Select>
         {errors?.regionId ? <p className="mt-1 text-xs text-red-600">{errors.regionId}</p> : null}
@@ -126,7 +132,9 @@ export function LocationPicker({ regions, value, onChange, names, depth = 4, com
         >
           <option value="">Barcha tumanlar</option>
           {districts.map((d) => (
-            <option key={d.id} value={d.id}>{d.name}</option>
+            <option key={d.id} value={d.id}>
+              {d.name}
+            </option>
           ))}
         </Select>
       </div>
@@ -143,7 +151,9 @@ export function LocationPicker({ regions, value, onChange, names, depth = 4, com
           >
             <option value="">{settlements.length ? "Barcha aholi punktlari" : "—"}</option>
             {settlements.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
             ))}
           </Select>
         </div>
@@ -161,7 +171,9 @@ export function LocationPicker({ regions, value, onChange, names, depth = 4, com
           >
             <option value="">{mahallas.length ? "Barcha mahallalar" : "—"}</option>
             {mahallas.map((m) => (
-              <option key={m.id} value={m.id}>{m.name}</option>
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
             ))}
           </Select>
         </div>

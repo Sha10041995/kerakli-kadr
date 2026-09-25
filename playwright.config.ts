@@ -21,12 +21,23 @@ export default defineConfig({
     locale: "uz-UZ",
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"], launchOptions: existsSync(chromium) && !process.env.PLAYWRIGHT_BROWSERS_PATH ? { executablePath: chromium } : {} } },
+    {
+      name: "desktop",
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: existsSync(chromium) && !process.env.PLAYWRIGHT_BROWSERS_PATH ? { executablePath: chromium } : {},
+      },
+    },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : [
-        { command: "node scripts/local-stack/start.mjs", url: "http://localhost:54321/rest/v1/", reuseExistingServer: true, timeout: 60_000 },
+        {
+          command: "node scripts/local-stack/start.mjs",
+          url: "http://localhost:54321/rest/v1/",
+          reuseExistingServer: true,
+          timeout: 60_000,
+        },
         { command: "node scripts/e2e-server.mjs", url: `${baseURL}/api/health`, reuseExistingServer: true, timeout: 180_000 },
       ],
 });

@@ -14,7 +14,9 @@ export default async function AdminVacancies(props: PageProps<"/admin/vacancies"
   const supabase = await createClient();
   const { data } = await supabase
     .from("vacancies")
-    .select("id, title, status, created_at, description, rejection_reason, is_demo, companies(name, verification_status), districts(name_uz)")
+    .select(
+      "id, title, status, created_at, description, rejection_reason, is_demo, companies(name, verification_status), districts(name_uz)",
+    )
     .eq("status", status)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -23,19 +25,35 @@ export default async function AdminVacancies(props: PageProps<"/admin/vacancies"
       <PageHeader title="Vakansiyalar moderatsiyasi" />
       <nav className="mb-4 flex flex-wrap gap-2">
         {STATUSES.map((s) => (
-          <Link key={s} href={`/admin/vacancies?status=${s}`} className={cn("rounded-full px-3 py-1 text-sm", s === status ? "bg-brand-600 text-white" : "bg-white text-slate-700 ring-1 ring-slate-200")}>{VACANCY_STATUS_LABELS[s]}</Link>
+          <Link
+            key={s}
+            href={`/admin/vacancies?status=${s}`}
+            className={cn(
+              "rounded-full px-3 py-1 text-sm",
+              s === status ? "bg-brand-600 text-white" : "bg-white text-slate-700 ring-1 ring-slate-200",
+            )}
+          >
+            {VACANCY_STATUS_LABELS[s]}
+          </Link>
         ))}
       </nav>
-      {!data?.length ? <EmptyState title="Roʻyxat boʻsh" /> : (
+      {!data?.length ? (
+        <EmptyState title="Roʻyxat boʻsh" />
+      ) : (
         <div className="space-y-3">
           {data.map((v) => (
             <Card key={v.id} className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <Link href={`/vacancy/${v.id}`} className="font-semibold text-slate-900 hover:text-brand-700">{v.title}</Link>
+                <Link href={`/vacancy/${v.id}`} className="hover:text-brand-700 font-semibold text-slate-900">
+                  {v.title}
+                </Link>
                 <Badge>{VACANCY_STATUS_LABELS[v.status]}</Badge>
                 {v.is_demo ? <Badge tone="warning">DEMO</Badge> : null}
               </div>
-              <p className="text-xs text-slate-500">{v.companies?.name} {v.companies?.verification_status === "verified" ? "✓" : ""} · {v.districts?.name_uz ?? "—"} · {timeAgo(v.created_at)}</p>
+              <p className="text-xs text-slate-500">
+                {v.companies?.name} {v.companies?.verification_status === "verified" ? "✓" : ""} · {v.districts?.name_uz ?? "—"} ·{" "}
+                {timeAgo(v.created_at)}
+              </p>
               <p className="line-clamp-3 text-sm text-slate-700">{v.description}</p>
               {v.rejection_reason ? <p className="text-xs text-red-600">Sabab: {v.rejection_reason}</p> : null}
               <VacancyModeration id={v.id} status={v.status} />

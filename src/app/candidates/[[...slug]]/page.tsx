@@ -41,9 +41,22 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
     getRegions(),
     getCatalog(),
     getCurrentUser(),
-    getLocationLabel({ regionId: search.region, districtId: search.district, settlementId: search.settlement, mahallaId: search.mahalla }),
+    getLocationLabel({
+      regionId: search.region,
+      districtId: search.district,
+      settlementId: search.settlement,
+      mahallaId: search.mahalla,
+    }),
   ]);
-  logSearch({ kind: "candidates", userId: user?.id, query: search.q, professionId: search.profession, regionId: search.region, districtId: search.district, results: total });
+  logSearch({
+    kind: "candidates",
+    userId: user?.id,
+    query: search.q,
+    professionId: search.profession,
+    regionId: search.region,
+    districtId: search.district,
+    results: total,
+  });
 
   const basePath = seoPath("candidates", seo);
   const profession = catalog.flatMap((c) => c.professions).find((p) => p.id === search.profession);
@@ -54,19 +67,36 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
       <PageHeader
         title={seoTitle("candidates", seo)}
         description="Natijalar hudud va masofa boʻyicha tartiblangan — eng yaqin mutaxassislar birinchi. Nomzodlarning aniq manzili hech qachon koʻrsatilmaydi."
-        actions={user ? <SaveSearchButton kind="candidates" search={search} label={[profession?.name, locationLabel].filter(Boolean).join(" · ") || "Kadrlar"} /> : null}
+        actions={
+          user ? (
+            <SaveSearchButton
+              kind="candidates"
+              search={search}
+              label={[profession?.name, locationLabel].filter(Boolean).join(" · ") || "Kadrlar"}
+            />
+          ) : null
+        }
       />
       {!isSupabaseConfigured() ? (
-        <Alert tone="warning" className="mb-4">Maʼlumotlar bazasi ulanmagan. <code>.env.local</code> faylida Supabase sozlamalarini kiriting.</Alert>
+        <Alert tone="warning" className="mb-4">
+          Maʼlumotlar bazasi ulanmagan. <code>.env.local</code> faylida Supabase sozlamalarini kiriting.
+        </Alert>
       ) : null}
-      {error ? <Alert tone="danger" className="mb-4">Qidiruvda xatolik yuz berdi.</Alert> : null}
+      {error ? (
+        <Alert tone="danger" className="mb-4">
+          Qidiruvda xatolik yuz berdi.
+        </Alert>
+      ) : null}
 
       {profession && hasLocation ? (
-        <Card className="mb-6 flex items-center gap-4 border-brand-200 bg-brand-50">
-          <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white"><UsersIcon size={24} /></span>
-          <p className="text-base text-brand-900 sm:text-lg">
+        <Card className="border-brand-200 bg-brand-50 mb-6 flex items-center gap-4">
+          <span className="bg-brand-600 inline-flex size-12 shrink-0 items-center justify-center rounded-full text-white">
+            <UsersIcon size={24} />
+          </span>
+          <p className="text-brand-900 text-base sm:text-lg">
             <strong>{locationLabel ?? "Yaqin atrofda"}</strong>
-            {search.radius ? ` (${search.radius} km)` : ""} — <strong>{formatNumber(total)}</strong> ta {profession.name.toLowerCase()} mavjud.
+            {search.radius ? ` (${search.radius} km)` : ""} — <strong>{formatNumber(total)}</strong> ta{" "}
+            {profession.name.toLowerCase()} mavjud.
           </p>
         </Card>
       ) : (
@@ -85,14 +115,24 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
               <EmptyState
                 title="Mos nomzod topilmadi"
                 description="Radiusni kengaytiring yoki qoʻshni tumanni tanlang. Vakansiya joylasangiz, nomzodlar oʻzlari ariza yuboradi."
-                action={<Link href="/dashboard/vacancies/new" className="text-sm font-medium text-brand-700 hover:underline">Vakansiya joylash</Link>}
+                action={
+                  <Link href="/dashboard/vacancies/new" className="text-brand-700 text-sm font-medium hover:underline">
+                    Vakansiya joylash
+                  </Link>
+                }
               />
             </div>
           ) : (
             rows.map((c) => <CandidateCard key={c.id} c={c} />)
           )}
           <div className="xl:col-span-2">
-            <Pagination page={search.page} pages={totalPages(total)} hrefFor={(p) => `${basePath}${searchToQuery(search, { page: p, region: seo.region ? undefined : search.region, district: seo.district ? undefined : search.district, profession: seo.profession ? undefined : search.profession })}`} />
+            <Pagination
+              page={search.page}
+              pages={totalPages(total)}
+              hrefFor={(p) =>
+                `${basePath}${searchToQuery(search, { page: p, region: seo.region ? undefined : search.region, district: seo.district ? undefined : search.district, profession: seo.profession ? undefined : search.profession })}`
+              }
+            />
           </div>
         </section>
       </div>

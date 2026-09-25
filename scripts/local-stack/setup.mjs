@@ -7,8 +7,18 @@ import path from "node:path";
 import pg from "pg";
 import { authEnv } from "./setup-env.mjs";
 import {
-  ANON_KEY, AUTHENTICATOR_PASSWORD, BIN_DIR, DB_NAME, PG_ADMIN_URL, PORTS, ROOT, SERVICE_ROLE_KEY,
-  SITE_URL, STACK_DIR, VERSIONS, dbUrl,
+  ANON_KEY,
+  AUTHENTICATOR_PASSWORD,
+  BIN_DIR,
+  DB_NAME,
+  PG_ADMIN_URL,
+  PORTS,
+  ROOT,
+  SERVICE_ROLE_KEY,
+  SITE_URL,
+  STACK_DIR,
+  VERSIONS,
+  dbUrl,
 } from "./config.mjs";
 
 const args = new Set(process.argv.slice(2));
@@ -22,7 +32,10 @@ function ensureBinaries() {
   mkdirSync(BIN_DIR, { recursive: true });
   if (!existsSync(path.join(BIN_DIR, "postgrest"))) {
     const tar = path.join(STACK_DIR, "postgrest.tar.xz");
-    download(`https://github.com/PostgREST/postgrest/releases/download/${VERSIONS.postgrest}/postgrest-${VERSIONS.postgrest}-linux-static-x64.tar.xz`, tar);
+    download(
+      `https://github.com/PostgREST/postgrest/releases/download/${VERSIONS.postgrest}/postgrest-${VERSIONS.postgrest}-linux-static-x64.tar.xz`,
+      tar,
+    );
     execFileSync("tar", ["xf", tar, "-C", BIN_DIR]);
   }
   if (!existsSync(path.join(BIN_DIR, "auth", "auth"))) {
@@ -66,11 +79,15 @@ async function setupDatabase() {
     grant execute on all functions in schema auth to anon, authenticated, service_role;
   `);
 
-  for (const f of readdirSync(path.join(ROOT, "supabase/migrations")).filter((f) => f.endsWith(".sql")).sort()) {
+  for (const f of readdirSync(path.join(ROOT, "supabase/migrations"))
+    .filter((f) => f.endsWith(".sql"))
+    .sort()) {
     await run(`supabase/migrations/${f}`);
   }
   if (!args.has("--no-seed")) {
-    for (const f of readdirSync(path.join(ROOT, "supabase/seed")).filter((f) => f.endsWith(".sql")).sort()) {
+    for (const f of readdirSync(path.join(ROOT, "supabase/seed"))
+      .filter((f) => f.endsWith(".sql"))
+      .sort()) {
       await run(`supabase/seed/${f}`);
     }
   }

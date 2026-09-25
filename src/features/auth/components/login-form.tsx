@@ -34,13 +34,22 @@ export function LoginForm({ next }: { next?: string }) {
         <Input id="email" type="email" autoComplete="email" aria-invalid={!!formState.errors.email} {...register("email")} />
       </Field>
       <Field label="Parol" htmlFor="password" error={formState.errors.password?.message}>
-        <Input id="password" type="password" autoComplete="current-password" aria-invalid={!!formState.errors.password} {...register("password")} />
+        <Input
+          id="password"
+          type="password"
+          autoComplete="current-password"
+          aria-invalid={!!formState.errors.password}
+          {...register("password")}
+        />
       </Field>
       <Button type="submit" className="w-full" disabled={formState.isSubmitting}>
         {formState.isSubmitting ? "Kirilmoqda…" : "Kirish"}
       </Button>
       <p className="text-center text-sm text-slate-600">
-        Hisobingiz yoʻqmi? <Link href="/register" className="font-medium text-brand-700 hover:underline">Roʻyxatdan oʻting</Link>
+        Hisobingiz yoʻqmi?{" "}
+        <Link href="/register" className="text-brand-700 font-medium hover:underline">
+          Roʻyxatdan oʻting
+        </Link>
       </p>
     </form>
   );

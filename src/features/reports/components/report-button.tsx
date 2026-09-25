@@ -20,19 +20,36 @@ export function ReportButton({ targetType, targetId }: { targetType: Target; tar
   }
   return (
     <ActionForm
-      action={(fd) => submitReportAction({ targetType, targetId, reason: fd.get("reason"), details: String(fd.get("details") ?? "") || undefined })}
+      action={(fd) =>
+        submitReportAction({
+          targetType,
+          targetId,
+          reason: fd.get("reason"),
+          details: String(fd.get("details") ?? "") || undefined,
+        })
+      }
       className="space-y-2 rounded-lg border border-red-200 bg-red-50 p-3"
       resetOnSuccess={false}
     >
       <p className="text-sm font-medium text-red-900">Nima muammo bor?</p>
       <Select name="reason" required defaultValue="" aria-label="Sabab">
-        <option value="" disabled>Sababni tanlang</option>
-        {options(REPORT_REASON_LABELS).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        <option value="" disabled>
+          Sababni tanlang
+        </option>
+        {options(REPORT_REASON_LABELS).map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
       </Select>
       <Textarea name="details" rows={2} maxLength={2000} placeholder="Batafsil (ixtiyoriy)" aria-label="Batafsil" />
       <div className="flex gap-2">
-        <Button type="submit" size="sm" variant="danger">Yuborish</Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>Bekor qilish</Button>
+        <Button type="submit" size="sm" variant="danger">
+          Yuborish
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
+          Bekor qilish
+        </Button>
       </div>
     </ActionForm>
   );

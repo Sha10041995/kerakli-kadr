@@ -12,7 +12,15 @@ import { saveCompanyAction } from "@/features/employers/actions";
 import { COMPANY_TYPE_LABELS, options } from "@/lib/i18n/uz";
 import { companySchema, type CompanyInput } from "@/validations/company";
 
-export function CompanyForm({ defaults, regions, isNew }: { defaults: CompanyInput; regions: { id: number; name: string }[]; isNew: boolean }) {
+export function CompanyForm({
+  defaults,
+  regions,
+  isNew,
+}: {
+  defaults: CompanyInput;
+  regions: { id: number; name: string }[];
+  isNew: boolean;
+}) {
   const router = useRouter();
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const { register, handleSubmit, setValue, control, formState } = useForm<CompanyInput>({
@@ -36,10 +44,18 @@ export function CompanyForm({ defaults, regions, isNew }: { defaults: CompanyInp
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Turi" htmlFor="companyType" error={errors.companyType?.message}>
             <Select id="companyType" {...register("companyType")}>
-              {options(COMPANY_TYPE_LABELS).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              {options(COMPANY_TYPE_LABELS).map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
             </Select>
           </Field>
-          <Field label={type === "individual" ? "Ism-familiya yoki nom" : "Kompaniya nomi"} htmlFor="name" error={errors.name?.message}>
+          <Field
+            label={type === "individual" ? "Ism-familiya yoki nom" : "Kompaniya nomi"}
+            htmlFor="name"
+            error={errors.name?.message}
+          >
             <Input id="name" maxLength={160} {...register("name")} />
           </Field>
           {type !== "individual" ? (

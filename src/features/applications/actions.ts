@@ -62,7 +62,9 @@ export async function withdrawApplicationAction(id: string): Promise<ActionResul
   return { ok: true };
 }
 
-export async function revealContactAction(applicationId: string): Promise<ActionResult<{ phone: string | null; email: string | null }>> {
+export async function revealContactAction(
+  applicationId: string,
+): Promise<ActionResult<{ phone: string | null; email: string | null }>> {
   if (!uuidSchema.safeParse(applicationId).success) return fail("Notoʻgʻri soʻrov");
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_applicant_contact", { p_application_id: applicationId });

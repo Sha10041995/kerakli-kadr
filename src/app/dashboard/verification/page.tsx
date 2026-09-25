@@ -13,15 +13,25 @@ import { formatDate } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Tasdiqlash", robots: { index: false } };
 
-const STATUS = { pending: ["warning", "Koʻrib chiqilmoqda"], approved: ["success", "Tasdiqlandi"], rejected: ["danger", "Rad etildi"] } as const;
+const STATUS = {
+  pending: ["warning", "Koʻrib chiqilmoqda"],
+  approved: ["success", "Tasdiqlandi"],
+  rejected: ["danger", "Rad etildi"],
+} as const;
 
 export default async function VerificationPage() {
   const user = await requireUser("/dashboard/verification");
   const supabase = await createClient();
   const [{ data: profile }, { data: requests }, { data: company }] = await Promise.all([
     supabase.from("profiles").select("phone_verified, identity_verified, certificate_verified").eq("id", user.id).single(),
-    supabase.from("verification_requests").select("id, type, status, admin_note, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
-    user.companyId ? supabase.from("companies").select("verification_status").eq("id", user.companyId).maybeSingle() : Promise.resolve({ data: null }),
+    supabase
+      .from("verification_requests")
+      .select("id, type, status, admin_note, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+    user.companyId
+      ? supabase.from("companies").select("verification_status").eq("id", user.companyId).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
   const flags = {
     phoneVerified: profile?.phone_verified,
@@ -35,12 +45,18 @@ export default async function VerificationPage() {
     <>
       <PageHeader title="Tasdiqlash" description="Tasdiqlangan profillar ish beruvchilar va nomzodlarning ishonchini oshiradi." />
       <Card className="mb-6 flex items-center gap-4">
-        <span className="inline-flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-700"><ShieldIcon size={28} /></span>
+        <span className="bg-brand-50 text-brand-700 inline-flex size-14 items-center justify-center rounded-full">
+          <ShieldIcon size={28} />
+        </span>
         <div>
           <p className="text-sm text-slate-500">Tasdiqlash darajasi</p>
           <p className="text-2xl font-bold text-slate-900">{level} / 4</p>
           <div className="mt-1 flex flex-wrap gap-1.5">
-            {verificationBadges(flags).map((b) => <Badge key={b} tone="success">✓ {b}</Badge>)}
+            {verificationBadges(flags).map((b) => (
+              <Badge key={b} tone="success">
+                ✓ {b}
+              </Badge>
+            ))}
             {level === 0 ? <Badge>Tasdiqlanmagan</Badge> : null}
           </div>
         </div>
@@ -54,7 +70,11 @@ export default async function VerificationPage() {
               <Select id="v-type" name="type" defaultValue="identity">
                 {Object.entries(VERIFICATION_TYPE_LABELS)
                   .filter(([k]) => k !== "company" || user.companyId)
-                  .map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  .map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
+                  ))}
               </Select>
             </div>
             <div>

@@ -9,8 +9,14 @@ export type MessageAnalysis = { flagged: boolean; flags: MessageFlag[]; warning:
 const LINK_RE = /(https?:\/\/|www\.|t\.me\/|bit\.ly|wa\.me\/)/i;
 const PHONE_RE = /(\+?998[\s-]?)?\(?\d{2}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}/;
 const FRAUD_PATTERNS = [
-  /karta\s*raqam/i, /cvv/i, /sms\s*kod/i, /parolingiz/i, /oldindan\s*to[ʻ'‘`]?lov/i, /\bpredoplat/i,
-  /hujjat(ingiz)?\s*uchun\s*pul/i, /kod\s*yuboring/i,
+  /karta\s*raqam/i,
+  /cvv/i,
+  /sms\s*kod/i,
+  /parolingiz/i,
+  /oldindan\s*to[ʻ'‘`]?lov/i,
+  /\bpredoplat/i,
+  /hujjat(ingiz)?\s*uchun\s*pul/i,
+  /kod\s*yuboring/i,
 ];
 const ABUSE_PATTERNS = [/\bahmoq\b/i, /\bjinni\b/i];
 

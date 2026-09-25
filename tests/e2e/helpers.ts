@@ -11,7 +11,13 @@ export async function login(page: Page, email: string, password = DEMO_PASSWORD,
   await page.waitForURL((url) => !url.pathname.startsWith("/login"));
 }
 
-export async function register(page: Page, role: "job_seeker" | "employer", email: string, first = "Test", last = "Foydalanuvchi") {
+export async function register(
+  page: Page,
+  role: "job_seeker" | "employer",
+  email: string,
+  first = "Test",
+  last = "Foydalanuvchi",
+) {
   await page.goto(`/register?role=${role}`);
   await page.getByLabel("Ism").fill(first);
   await page.getByLabel("Familiya").fill(last);

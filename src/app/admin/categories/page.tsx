@@ -21,16 +21,23 @@ export default async function AdminCategories() {
         {(categories ?? []).map((c) => (
           <Card key={c.id}>
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="font-semibold">{c.icon} {c.name_uz}</h2>
+              <h2 className="font-semibold">
+                {c.icon} {c.name_uz}
+              </h2>
               <ActiveToggle kind="catalog" table="categories" id={c.id} active={c.is_active} />
             </div>
             <ul className="space-y-1 text-sm">
-              {(professions ?? []).filter((p) => p.category_id === c.id).map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-2">
-                  <span>{p.name_uz} {p.synonyms.length ? <span className="text-xs text-slate-400">({p.synonyms.join(", ")})</span> : null}</span>
-                  <ActiveToggle kind="catalog" table="professions" id={p.id} active={p.is_active} />
-                </li>
-              ))}
+              {(professions ?? [])
+                .filter((p) => p.category_id === c.id)
+                .map((p) => (
+                  <li key={p.id} className="flex items-center justify-between gap-2">
+                    <span>
+                      {p.name_uz}{" "}
+                      {p.synonyms.length ? <span className="text-xs text-slate-400">({p.synonyms.join(", ")})</span> : null}
+                    </span>
+                    <ActiveToggle kind="catalog" table="professions" id={p.id} active={p.is_active} />
+                  </li>
+                ))}
             </ul>
           </Card>
         ))}

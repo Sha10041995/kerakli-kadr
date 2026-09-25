@@ -19,11 +19,17 @@ export default async function ConversationPage(props: PageProps<"/messages/[id]"
     <Container className="py-4 sm:py-6">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/messages" className="text-sm text-slate-500 hover:underline">← Xabarlar</Link>
+          <Link href="/messages" className="text-sm text-slate-500 hover:underline">
+            ← Xabarlar
+          </Link>
           <Avatar src={data.other?.avatar_url} first={data.other?.first_name} last={data.other?.last_name} size={36} />
           <div>
             <p className="font-semibold text-slate-900">{displayName(data.other?.first_name, data.other?.last_name, true)}</p>
-            {data.conv.vacancies ? <Link href={`/vacancy/${data.conv.vacancies.id}`} className="text-xs text-brand-700 hover:underline">{data.conv.vacancies.title}</Link> : null}
+            {data.conv.vacancies ? (
+              <Link href={`/vacancy/${data.conv.vacancies.id}`} className="text-brand-700 text-xs hover:underline">
+                {data.conv.vacancies.title}
+              </Link>
+            ) : null}
           </div>
         </div>
         {data.other?.id ? <ReportButton targetType="user" targetId={data.other.id} /> : null}

@@ -10,8 +10,17 @@ export async function listConversations(userId: string) {
   const ids = (mine ?? []).map((m) => m.conversation_id);
   if (!ids.length) return [];
   const [{ data: others }, { data: recent }] = await Promise.all([
-    supabase.from("conversation_participants").select("conversation_id, user_id").in("conversation_id", ids).neq("user_id", userId),
-    supabase.from("messages").select("conversation_id, body, kind, sender_id, created_at").in("conversation_id", ids).order("created_at", { ascending: false }).limit(300),
+    supabase
+      .from("conversation_participants")
+      .select("conversation_id, user_id")
+      .in("conversation_id", ids)
+      .neq("user_id", userId),
+    supabase
+      .from("messages")
+      .select("conversation_id, body, kind, sender_id, created_at")
+      .in("conversation_id", ids)
+      .order("created_at", { ascending: false })
+      .limit(300),
   ]);
   const otherIds = [...new Set((others ?? []).map((o) => o.user_id))];
   const { data: people } = otherIds.length
@@ -29,7 +38,7 @@ export async function listConversations(userId: string) {
         id: m.conversation_id,
         vacancyTitle: m.conversations?.vacancies?.title ?? null,
         lastMessageAt: m.conversations?.last_message_at ?? null,
-        other: other ? personById.get(other.user_id) ?? null : null,
+        other: other ? (personById.get(other.user_id) ?? null) : null,
         last,
         unread: Boolean(last && last.sender_id !== userId && (!m.last_read_at || last.created_at > m.last_read_at)),
       };

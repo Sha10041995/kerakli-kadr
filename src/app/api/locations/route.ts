@@ -9,7 +9,10 @@ import { toPositiveInt } from "@/lib/utils";
 export async function GET(request: NextRequest) {
   const limited = await checkRateLimit("locations", RATE_LIMITS.search);
   if (!limited.ok) {
-    return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } });
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } },
+    );
   }
   const level = request.nextUrl.searchParams.get("level");
   const parent = toPositiveInt(request.nextUrl.searchParams.get("parent"));

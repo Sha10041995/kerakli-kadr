@@ -55,7 +55,9 @@ export function RegisterForm({ defaultRole }: { defaultRole?: "job_seeker" | "em
               onClick={() => setValue("role", value, { shouldValidate: true })}
               className={cn(
                 "flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-sm font-medium transition",
-                role === value ? "border-brand-600 bg-brand-50 text-brand-800" : "border-slate-200 text-slate-700 hover:border-slate-300",
+                role === value
+                  ? "border-brand-600 bg-brand-50 text-brand-800"
+                  : "border-slate-200 text-slate-700 hover:border-slate-300",
               )}
             >
               <Icon size={24} />
@@ -87,8 +89,14 @@ export function RegisterForm({ defaultRole }: { defaultRole?: "job_seeker" | "em
           {...register("acceptTerms")}
           label={
             <>
-              <Link href="/terms" className="text-brand-700 underline" target="_blank">Foydalanish shartlari</Link> va{" "}
-              <Link href="/privacy" className="text-brand-700 underline" target="_blank">maxfiylik siyosatiga</Link> roziman
+              <Link href="/terms" className="text-brand-700 underline" target="_blank">
+                Foydalanish shartlari
+              </Link>{" "}
+              va{" "}
+              <Link href="/privacy" className="text-brand-700 underline" target="_blank">
+                maxfiylik siyosatiga
+              </Link>{" "}
+              roziman
             </>
           }
         />
@@ -98,7 +106,10 @@ export function RegisterForm({ defaultRole }: { defaultRole?: "job_seeker" | "em
         {formState.isSubmitting ? "Yuborilmoqda…" : "Roʻyxatdan oʻtish"}
       </Button>
       <p className="text-center text-sm text-slate-600">
-        Hisobingiz bormi? <Link href="/login" className="font-medium text-brand-700 hover:underline">Kirish</Link>
+        Hisobingiz bormi?{" "}
+        <Link href="/login" className="text-brand-700 font-medium hover:underline">
+          Kirish
+        </Link>
       </p>
     </form>
   );

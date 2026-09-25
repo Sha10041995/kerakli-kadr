@@ -73,7 +73,7 @@ export function SearchBar({ regions, professions, defaultMode = "jobs" }: Props)
             role="tab"
             aria-selected={mode === m}
             onClick={() => setMode(m)}
-            className={cn("rounded-md px-4 py-1.5", mode === m ? "bg-white text-brand-700 shadow-sm" : "text-slate-600")}
+            className={cn("rounded-md px-4 py-1.5", mode === m ? "text-brand-700 bg-white shadow-sm" : "text-slate-600")}
           >
             {m === "jobs" ? "Ish qidiryapman" : "Kadr qidiryapman"}
           </button>
@@ -86,35 +86,56 @@ export function SearchBar({ regions, professions, defaultMode = "jobs" }: Props)
           </label>
           <div className="relative">
             <SearchIcon className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" size={18} />
-            <Input id="sb-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Masalan: elektrik, haydovchi" className="pl-9" maxLength={80} />
+            <Input
+              id="sb-q"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Masalan: elektrik, haydovchi"
+              className="pl-9"
+              maxLength={80}
+            />
           </div>
         </div>
         <div className="lg:col-span-3">
-          <label htmlFor="sb-p" className="mb-1 block text-xs font-semibold text-slate-500">Kasb</label>
+          <label htmlFor="sb-p" className="mb-1 block text-xs font-semibold text-slate-500">
+            Kasb
+          </label>
           <Select id="sb-p" value={profession} onChange={(e) => setProfession(e.target.value)}>
             <option value="">Barcha kasblar</option>
             {Object.entries(groups).map(([cat, items]) => (
               <optgroup key={cat} label={cat}>
                 {items.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
                 ))}
               </optgroup>
             ))}
           </Select>
         </div>
         <div className="lg:col-span-3">
-          <span className="mb-1 flex items-center gap-1 text-xs font-semibold text-slate-500"><PinIcon size={14} /> Qayerdan?</span>
+          <span className="mb-1 flex items-center gap-1 text-xs font-semibold text-slate-500">
+            <PinIcon size={14} /> Qayerdan?
+          </span>
           <LocationPicker regions={regions} depth={2} compact onChange={setLoc} className="gap-2" />
         </div>
         <div className="lg:col-span-2">
-          <label htmlFor="sb-r" className="mb-1 block text-xs font-semibold text-slate-500">Necha km?</label>
+          <label htmlFor="sb-r" className="mb-1 block text-xs font-semibold text-slate-500">
+            Necha km?
+          </label>
           <Select id="sb-r" value={radius} onChange={(e) => setRadius(e.target.value)}>
             <option value="">Hudud boʻyicha</option>
             {RADIUS_OPTIONS.map((r) => (
-              <option key={r} value={r}>{r} km</option>
+              <option key={r} value={r}>
+                {r} km
+              </option>
             ))}
           </Select>
-          <button type="button" onClick={useMyLocation} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-700 hover:underline">
+          <button
+            type="button"
+            onClick={useMyLocation}
+            className="text-brand-700 mt-2 inline-flex items-center gap-1 text-xs font-medium hover:underline"
+          >
             <TargetIcon size={14} />
             {gpsState === "loading" ? "Aniqlanmoqda…" : gps ? "Joylashuv olindi ✓" : "Mening joylashuvim"}
           </button>

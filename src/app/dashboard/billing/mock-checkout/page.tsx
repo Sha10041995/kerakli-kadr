@@ -21,11 +21,17 @@ export default async function MockCheckoutPage(props: PageProps<"/dashboard/bill
   return (
     <>
       <PageHeader title="Test toʻlov sahifasi" />
-      <Alert tone="warning" className="mb-4">Bu faqat development muhiti uchun. Haqiqiy pul yechilmaydi. Productionda mahalliy toʻlov provayderi sahifasi ochiladi.</Alert>
+      <Alert tone="warning" className="mb-4">
+        Bu faqat development muhiti uchun. Haqiqiy pul yechilmaydi. Productionda mahalliy toʻlov provayderi sahifasi ochiladi.
+      </Alert>
       <Card className="max-w-md space-y-3">
         <p className="text-sm text-slate-600">Summa</p>
         <p className="text-2xl font-bold">{formatNumber(payment.amount_uzs)} soʻm</p>
-        {payment.status === "pending" ? <MockCheckout paymentId={payment.id} /> : <p className="text-sm">Holat: {payment.status}</p>}
+        {payment.status === "pending" ? (
+          <MockCheckout paymentId={payment.id} />
+        ) : (
+          <p className="text-sm">Holat: {payment.status}</p>
+        )}
       </Card>
     </>
   );

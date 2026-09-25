@@ -34,7 +34,9 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
             <button className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-500 hover:bg-slate-100">Chiqish</button>
           </form>
           {!user.isJobSeeker && !user.isEmployer ? (
-            <Link href="/onboarding" className="mt-2 block text-sm text-brand-700">Rolni tanlash →</Link>
+            <Link href="/onboarding" className="text-brand-700 mt-2 block text-sm">
+              Rolni tanlash →
+            </Link>
           ) : null}
         </aside>
         <div className="min-w-0">{children}</div>

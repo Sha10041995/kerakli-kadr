@@ -24,5 +24,8 @@ export function logSearch(entry: {
       district_id: entry.districtId ?? null,
       results_count: entry.results,
     })
-    .then(() => undefined, () => undefined);
+    .then(
+      () => undefined,
+      () => undefined,
+    );
 }

@@ -17,7 +17,9 @@ export default async function SavedPage() {
     supabase.from("saved_searches").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
     supabase
       .from("favorites")
-      .select("id, created_at, vacancy_id, candidate_id, vacancies(id, title, status), candidate_profiles(id, headline, professions(name_uz))")
+      .select(
+        "id, created_at, vacancy_id, candidate_id, vacancies(id, title, status), candidate_profiles(id, headline, professions(name_uz))",
+      )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
   ]);
@@ -29,7 +31,10 @@ export default async function SavedPage() {
 
   return (
     <>
-      <PageHeader title="Saqlanganlar" description="Saqlangan qidiruvlar boʻyicha yangi mos eʼlon chiqsa, bildirishnoma olasiz." />
+      <PageHeader
+        title="Saqlanganlar"
+        description="Saqlangan qidiruvlar boʻyicha yangi mos eʼlon chiqsa, bildirishnoma olasiz."
+      />
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-semibold text-slate-900">Saqlangan qidiruvlar</h2>
         {!searches?.length ? (
@@ -41,8 +46,13 @@ export default async function SavedPage() {
               return (
                 <Card key={s.id} className="flex items-center justify-between gap-3 py-3">
                   <div>
-                    <Link href={href} className="font-medium text-slate-900 hover:text-brand-700">{s.name}</Link>
-                    <p className="text-xs text-slate-500">{s.kind === "vacancies" ? "Vakansiyalar" : "Nomzodlar"} · {s.last_notified_at ? `oxirgi xabar ${timeAgo(s.last_notified_at)}` : "hali mos eʼlon chiqmadi"}</p>
+                    <Link href={href} className="hover:text-brand-700 font-medium text-slate-900">
+                      {s.name}
+                    </Link>
+                    <p className="text-xs text-slate-500">
+                      {s.kind === "vacancies" ? "Vakansiyalar" : "Nomzodlar"} ·{" "}
+                      {s.last_notified_at ? `oxirgi xabar ${timeAgo(s.last_notified_at)}` : "hali mos eʼlon chiqmadi"}
+                    </p>
                   </div>
                   <ConfirmButton onConfirm={deleteSavedSearchAction.bind(null, s.id)}>Oʻchirish</ConfirmButton>
                 </Card>
@@ -60,12 +70,19 @@ export default async function SavedPage() {
             {favorites.map((f) => (
               <Card key={f.id} className="py-3">
                 {f.vacancies ? (
-                  <Link href={`/vacancy/${f.vacancies.id}`} className="font-medium text-slate-900 hover:text-brand-700">Vakansiya: {f.vacancies.title}</Link>
+                  <Link href={`/vacancy/${f.vacancies.id}`} className="hover:text-brand-700 font-medium text-slate-900">
+                    Vakansiya: {f.vacancies.title}
+                  </Link>
                 ) : f.candidate_profiles ? (
-                  <Link href={`/candidate/${f.candidate_profiles.id}`} className="font-medium text-slate-900 hover:text-brand-700">
+                  <Link
+                    href={`/candidate/${f.candidate_profiles.id}`}
+                    className="hover:text-brand-700 font-medium text-slate-900"
+                  >
                     Nomzod: {names.get(f.candidate_profiles.id) ?? "—"} · {f.candidate_profiles.professions?.name_uz}
                   </Link>
-                ) : <span className="text-sm text-slate-500">Eʼlon mavjud emas</span>}
+                ) : (
+                  <span className="text-sm text-slate-500">Eʼlon mavjud emas</span>
+                )}
               </Card>
             ))}
           </div>

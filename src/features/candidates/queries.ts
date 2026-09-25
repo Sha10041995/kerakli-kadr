@@ -7,7 +7,9 @@ import type { FunctionReturns } from "@/types/database";
 
 export type CandidateSearchRow = FunctionReturns<"search_candidates">[number];
 
-export async function searchCandidates(search: CandidateSearch): Promise<{ rows: CandidateSearchRow[]; total: number; error?: string }> {
+export async function searchCandidates(
+  search: CandidateSearch,
+): Promise<{ rows: CandidateSearchRow[]; total: number; error?: string }> {
   if (!isSupabaseConfigured()) return { rows: [], total: 0 };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("search_candidates", candidateRpcArgs(search));
@@ -66,7 +68,11 @@ export async function getOwnCandidateProfile(userId: string) {
       )
       .eq("id", userId)
       .maybeSingle(),
-    supabase.from("profiles").select("first_name, last_name, phone, birth_year, avatar_url, email").eq("id", userId).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("first_name, last_name, phone, birth_year, avatar_url, email")
+      .eq("id", userId)
+      .maybeSingle(),
   ]);
   return { profile, person };
 }

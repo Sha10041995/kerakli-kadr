@@ -51,8 +51,7 @@ export function toUserMessage(error: ErrorLike): string {
 
 /** Standard result shape for server actions consumed by forms. */
 export type ActionResult<T = undefined> =
-  | { ok: true; data?: T; message?: string }
-  | { ok: false; error: string; fieldErrors?: Record<string, string[] | undefined> };
+  { ok: true; data?: T; message?: string } | { ok: false; error: string; fieldErrors?: Record<string, string[] | undefined> };
 
 export function fail(error: string, fieldErrors?: Record<string, string[] | undefined>): ActionResult<never> {
   return { ok: false, error, fieldErrors };

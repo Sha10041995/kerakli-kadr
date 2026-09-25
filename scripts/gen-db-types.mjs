@@ -9,8 +9,7 @@ import { fileURLToPath } from "node:url";
 import pg from "pg";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const url =
-  process.env.TYPES_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/kadrtop_test";
+const url = process.env.TYPES_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/kadrtop_test";
 const client = new pg.Client({ connectionString: url });
 await client.connect();
 
@@ -29,11 +28,18 @@ const scalar = (udt) => {
   const t = udt.replace(/^_/, "");
   if (enums.has(t)) return `Database["public"]["Enums"]["${t}"]`;
   switch (t) {
-    case "int2": case "int4": case "int8": case "float4": case "float8": case "numeric": case "oid":
+    case "int2":
+    case "int4":
+    case "int8":
+    case "float4":
+    case "float8":
+    case "numeric":
+    case "oid":
       return "number";
     case "bool":
       return "boolean";
-    case "json": case "jsonb":
+    case "json":
+    case "jsonb":
       return "Json";
     case "void":
       return "undefined";
@@ -192,9 +198,7 @@ out.push('export type Tables<T extends keyof PublicSchema["Tables"]> = PublicSch
 out.push('export type TablesInsert<T extends keyof PublicSchema["Tables"]> = PublicSchema["Tables"][T]["Insert"];');
 out.push('export type TablesUpdate<T extends keyof PublicSchema["Tables"]> = PublicSchema["Tables"][T]["Update"];');
 out.push('export type Enums<T extends keyof PublicSchema["Enums"]> = PublicSchema["Enums"][T];');
-out.push(
-  'export type FunctionReturns<T extends keyof PublicSchema["Functions"]> = PublicSchema["Functions"][T]["Returns"];',
-);
+out.push('export type FunctionReturns<T extends keyof PublicSchema["Functions"]> = PublicSchema["Functions"][T]["Returns"];');
 out.push("");
 
 const target = path.join(root, "src/types/database.ts");

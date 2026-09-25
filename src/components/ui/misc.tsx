@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- user-uploaded images from Supabase Storage with arbitrary dimensions */
 import type { ComponentProps, ReactNode } from "react";
 import { cn, initials } from "@/lib/utils";
 
@@ -23,7 +24,11 @@ const TONES: Record<Tone, string> = {
 export function Badge({ tone = "neutral", className, ...props }: ComponentProps<"span"> & { tone?: Tone }) {
   return (
     <span
-      className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap", TONES[tone], className)}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        TONES[tone],
+        className,
+      )}
       {...props}
     />
   );
@@ -44,14 +49,25 @@ export function Avatar({
 }) {
   const style = { width: size, height: size };
   if (src) {
-    // eslint-disable-next-line @next/next/no-img-element -- user uploads from Supabase Storage
-    return <img src={src} alt="" width={size} height={size} style={style} className={cn("shrink-0 rounded-full object-cover", className)} />;
+    return (
+      <img
+        src={src}
+        alt=""
+        width={size}
+        height={size}
+        style={style}
+        className={cn("shrink-0 rounded-full object-cover", className)}
+      />
+    );
   }
   return (
     <span
       aria-hidden
       style={style}
-      className={cn("inline-flex shrink-0 items-center justify-center rounded-full bg-brand-100 font-semibold text-brand-800", className)}
+      className={cn(
+        "bg-brand-100 text-brand-800 inline-flex shrink-0 items-center justify-center rounded-full font-semibold",
+        className,
+      )}
     >
       {initials(first, last)}
     </span>
@@ -68,7 +84,15 @@ export function EmptyState({ title, description, action }: { title: string; desc
   );
 }
 
-export function Alert({ tone = "info", children, className }: { tone?: "info" | "success" | "warning" | "danger"; children: ReactNode; className?: string }) {
+export function Alert({
+  tone = "info",
+  children,
+  className,
+}: {
+  tone?: "info" | "success" | "warning" | "danger";
+  children: ReactNode;
+  className?: string;
+}) {
   const tones = {
     info: "border-sky-200 bg-sky-50 text-sky-900",
     success: "border-emerald-200 bg-emerald-50 text-emerald-900",
@@ -76,7 +100,10 @@ export function Alert({ tone = "info", children, className }: { tone?: "info" | 
     danger: "border-red-200 bg-red-50 text-red-900",
   };
   return (
-    <div role={tone === "danger" ? "alert" : "status"} className={cn("rounded-lg border px-4 py-3 text-sm", tones[tone], className)}>
+    <div
+      role={tone === "danger" ? "alert" : "status"}
+      className={cn("rounded-lg border px-4 py-3 text-sm", tones[tone], className)}
+    >
       {children}
     </div>
   );

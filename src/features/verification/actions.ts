@@ -17,7 +17,13 @@ export async function requestVerificationAction(formData: FormData): Promise<Act
 
   let companyId: string | null = null;
   if (parsed.data.type === "company") {
-    const { data } = await supabase.from("company_members").select("company_id").eq("user_id", userId).eq("member_role", "owner").limit(1).maybeSingle();
+    const { data } = await supabase
+      .from("company_members")
+      .select("company_id")
+      .eq("user_id", userId)
+      .eq("member_role", "owner")
+      .limit(1)
+      .maybeSingle();
     if (!data) return fail("Avval kompaniya profilini yarating.");
     companyId = data.company_id;
   }

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- user-uploaded images from Supabase Storage with arbitrary dimensions */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -41,8 +42,14 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
     const { data } = await supabase.from("favorites").select("id").eq("user_id", user.id).eq("candidate_id", id).maybeSingle();
     isFavorite = Boolean(data);
   }
-  const badges = verificationBadges({ phoneVerified: person?.phone_verified, identityVerified: person?.identity_verified, certificateVerified: person?.certificate_verified });
-  const place = [p.mahallas?.name_uz, p.settlements?.name_uz, p.districts?.name_uz, p.regions?.name_uz].filter(Boolean).join(", ");
+  const badges = verificationBadges({
+    phoneVerified: person?.phone_verified,
+    identityVerified: person?.identity_verified,
+    certificateVerified: person?.certificate_verified,
+  });
+  const place = [p.mahallas?.name_uz, p.settlements?.name_uz, p.districts?.name_uz, p.regions?.name_uz]
+    .filter(Boolean)
+    .join(", ");
   const isOwner = user?.id === id;
 
   return (
@@ -58,17 +65,29 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
                 {p.premium_until && new Date(p.premium_until) > new Date() ? <Badge tone="premium">Premium</Badge> : null}
                 {!p.is_public ? <Badge>Yashirin profil</Badge> : null}
               </div>
-              <p className="text-lg font-medium text-brand-700">{p.professions?.name_uz ?? "Kasb koʻrsatilmagan"}</p>
+              <p className="text-brand-700 text-lg font-medium">{p.professions?.name_uz ?? "Kasb koʻrsatilmagan"}</p>
               {p.headline ? <p className="text-slate-600">{p.headline}</p> : null}
               <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
-                <span className="inline-flex items-center gap-1"><PinIcon size={16} />{place || "Hudud koʻrsatilmagan"}</span>
+                <span className="inline-flex items-center gap-1">
+                  <PinIcon size={16} />
+                  {place || "Hudud koʻrsatilmagan"}
+                </span>
                 <span>Tajriba: {Number(p.experience_years)} yil</span>
-                {p.rating_count ? <span className="inline-flex items-center gap-1 text-amber-600"><StarIcon size={14} />{Number(p.rating_avg).toFixed(1)} ({p.rating_count})</span> : null}
+                {p.rating_count ? (
+                  <span className="inline-flex items-center gap-1 text-amber-600">
+                    <StarIcon size={14} />
+                    {Number(p.rating_avg).toFixed(1)} ({p.rating_count})
+                  </span>
+                ) : null}
                 {p.completed_jobs ? <span>{p.completed_jobs} ta bajarilgan ish</span> : null}
               </p>
               {badges.length ? (
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  {badges.map((b) => <Badge key={b} tone="success"><ShieldIcon size={12} /> {b}</Badge>)}
+                  {badges.map((b) => (
+                    <Badge key={b} tone="success">
+                      <ShieldIcon size={12} /> {b}
+                    </Badge>
+                  ))}
                 </div>
               ) : null}
             </div>
@@ -85,9 +104,14 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
             <Card>
               <h2 className="mb-3 text-lg font-semibold text-slate-900">Koʻnikmalar</h2>
               <div className="flex flex-wrap gap-2">
-                {p.candidate_skills.map((s) => s.skills ? (
-                  <Badge key={s.skills.id} tone={s.is_verified ? "success" : "brand"}>{s.skills.name_uz}{s.is_verified ? " ✓" : ""}</Badge>
-                ) : null)}
+                {p.candidate_skills.map((s) =>
+                  s.skills ? (
+                    <Badge key={s.skills.id} tone={s.is_verified ? "success" : "brand"}>
+                      {s.skills.name_uz}
+                      {s.is_verified ? " ✓" : ""}
+                    </Badge>
+                  ) : null,
+                )}
               </div>
             </Card>
           ) : null}
@@ -95,15 +119,22 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
           {p.candidate_experience?.length ? (
             <Card>
               <h2 className="mb-3 text-lg font-semibold text-slate-900">Ish tajribasi</h2>
-              <ol className="space-y-4 border-l-2 border-brand-100 pl-4">
-                {[...p.candidate_experience].sort((a, b) => b.start_date.localeCompare(a.start_date)).map((e) => (
-                  <li key={e.id}>
-                    <p className="font-medium text-slate-900">{e.position}</p>
-                    <p className="text-sm text-slate-600">{e.company_name}{e.location_text ? `, ${e.location_text}` : ""}</p>
-                    <p className="text-xs text-slate-500">{formatDate(e.start_date)} – {e.is_current ? "hozirgacha" : formatDate(e.end_date)}</p>
-                    {e.description ? <p className="mt-1 text-sm text-slate-700">{e.description}</p> : null}
-                  </li>
-                ))}
+              <ol className="border-brand-100 space-y-4 border-l-2 pl-4">
+                {[...p.candidate_experience]
+                  .sort((a, b) => b.start_date.localeCompare(a.start_date))
+                  .map((e) => (
+                    <li key={e.id}>
+                      <p className="font-medium text-slate-900">{e.position}</p>
+                      <p className="text-sm text-slate-600">
+                        {e.company_name}
+                        {e.location_text ? `, ${e.location_text}` : ""}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {formatDate(e.start_date)} – {e.is_current ? "hozirgacha" : formatDate(e.end_date)}
+                      </p>
+                      {e.description ? <p className="mt-1 text-sm text-slate-700">{e.description}</p> : null}
+                    </li>
+                  ))}
               </ol>
             </Card>
           ) : null}
@@ -117,7 +148,11 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
                     {p.candidate_education.map((e) => (
                       <li key={e.id}>
                         <p className="font-medium text-slate-900">{e.institution}</p>
-                        <p className="text-slate-600">{EDUCATION_LABELS[e.level]}{e.field ? ` · ${e.field}` : ""}{e.end_year ? ` · ${e.end_year}` : ""}</p>
+                        <p className="text-slate-600">
+                          {EDUCATION_LABELS[e.level]}
+                          {e.field ? ` · ${e.field}` : ""}
+                          {e.end_year ? ` · ${e.end_year}` : ""}
+                        </p>
                       </li>
                     ))}
                   </ul>
@@ -129,8 +164,12 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
                   <ul className="space-y-2 text-sm">
                     {p.candidate_certificates.map((cert) => (
                       <li key={cert.id}>
-                        <p className="font-medium text-slate-900">{cert.name} {cert.is_verified ? <span className="text-emerald-700">✓</span> : null}</p>
-                        <p className="text-slate-600">{[cert.issuer, cert.issued_at ? formatDate(cert.issued_at) : null].filter(Boolean).join(" · ")}</p>
+                        <p className="font-medium text-slate-900">
+                          {cert.name} {cert.is_verified ? <span className="text-emerald-700">✓</span> : null}
+                        </p>
+                        <p className="text-slate-600">
+                          {[cert.issuer, cert.issued_at ? formatDate(cert.issued_at) : null].filter(Boolean).join(" · ")}
+                        </p>
                       </li>
                     ))}
                   </ul>
@@ -145,11 +184,26 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
               <div className="grid gap-3 sm:grid-cols-2">
                 {p.candidate_portfolio.map((item) => (
                   <div key={item.id} className="rounded-lg border border-slate-100 p-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- public storage image */}
-                    {item.image_path ? <img src={item.image_path} alt={item.title} className="mb-2 aspect-video w-full rounded object-cover" loading="lazy" /> : null}
+                    {item.image_path ? (
+                      <img
+                        src={item.image_path}
+                        alt={item.title}
+                        className="mb-2 aspect-video w-full rounded object-cover"
+                        loading="lazy"
+                      />
+                    ) : null}
                     <p className="font-medium text-slate-900">{item.title}</p>
                     {item.description ? <p className="text-sm text-slate-600">{item.description}</p> : null}
-                    {item.url ? <a href={item.url} target="_blank" rel="noopener noreferrer nofollow ugc" className="text-xs text-brand-700 hover:underline">Havola ↗</a> : null}
+                    {item.url ? (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow ugc"
+                        className="text-brand-700 text-xs hover:underline"
+                      >
+                        Havola ↗
+                      </a>
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -162,7 +216,11 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
               <ul className="space-y-3">
                 {reviews.map((r) => (
                   <li key={r.id} className="border-b border-slate-100 pb-3 last:border-0">
-                    <p className="flex items-center gap-1 text-amber-500">{Array.from({ length: r.rating }, (_, i) => <StarIcon key={i} size={14} />)}</p>
+                    <p className="flex items-center gap-1 text-amber-500">
+                      {Array.from({ length: r.rating }, (_, i) => (
+                        <StarIcon key={i} size={14} />
+                      ))}
+                    </p>
                     {r.comment ? <p className="text-sm text-slate-700">{r.comment}</p> : null}
                     <p className="text-xs text-slate-500">{timeAgo(r.created_at)} · tasdiqlangan ish jarayonidan keyin</p>
                   </li>
@@ -175,7 +233,9 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
         <aside className="space-y-4">
           <Card id="contact" className="scroll-mt-24 space-y-3">
             <p className="text-sm text-slate-500">Kutilayotgan maosh</p>
-            <p className="text-lg font-semibold text-slate-900">{formatSalary(p.expected_salary_min, p.expected_salary_max, p.salary_type)}</p>
+            <p className="text-lg font-semibold text-slate-900">
+              {formatSalary(p.expected_salary_min, p.expected_salary_max, p.salary_type)}
+            </p>
             <Badge tone={p.availability === "immediately" ? "success" : "neutral"}>{AVAILABILITY_LABELS[p.availability]}</Badge>
             <p className="text-sm text-slate-600">{p.employment_types.map((t) => EMPLOYMENT_TYPE_LABELS[t]).join(", ")}</p>
             <ul className="text-sm text-slate-600">
@@ -184,15 +244,23 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
               <li>✓ {p.work_radius_km} km gacha masofada ishlashga tayyor</li>
             </ul>
             {isOwner ? (
-              <Link href="/dashboard/profile" className="block text-sm font-medium text-brand-700 hover:underline">Profilni tahrirlash →</Link>
+              <Link href="/dashboard/profile" className="text-brand-700 block text-sm font-medium hover:underline">
+                Profilni tahrirlash →
+              </Link>
             ) : user?.isEmployer ? (
               <StartChatButton otherUserId={id} label="Xabar yozish" />
             ) : !user ? (
               <p className="text-sm text-slate-600">
-                Bogʻlanish uchun <Link href={`/login?next=/candidate/${id}`} className="font-medium text-brand-700 hover:underline">ish beruvchi sifatida kiring</Link>.
+                Bogʻlanish uchun{" "}
+                <Link href={`/login?next=/candidate/${id}`} className="text-brand-700 font-medium hover:underline">
+                  ish beruvchi sifatida kiring
+                </Link>
+                .
               </p>
             ) : null}
-            <p className="text-xs text-slate-500">Telefon raqam ommaga koʻrsatilmaydi — nomzod ariza yuborganda ish beruvchiga ochiladi.</p>
+            <p className="text-xs text-slate-500">
+              Telefon raqam ommaga koʻrsatilmaydi — nomzod ariza yuborganda ish beruvchiga ochiladi.
+            </p>
           </Card>
           {p.lat != null && p.lng != null ? <LocationMap lat={p.lat} lng={p.lng} radiusKm={6} label="Taxminiy hudud" /> : null}
           {user && !isOwner ? (

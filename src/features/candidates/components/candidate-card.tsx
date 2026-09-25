@@ -27,13 +27,18 @@ export function CandidateCard({ c }: { c: CandidateSearchRow }) {
               </span>
             ) : null}
           </div>
-          <p className="text-sm font-medium text-brand-700">{c.profession_name ?? "Kasb koʻrsatilmagan"}</p>
+          <p className="text-brand-700 text-sm font-medium">{c.profession_name ?? "Kasb koʻrsatilmagan"}</p>
           {c.headline ? <p className="truncate text-sm text-slate-600">{c.headline}</p> : null}
         </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
-        {place ? <span className="inline-flex items-center gap-1"><PinIcon size={16} />{place}</span> : null}
-        {distance ? <span className="font-medium text-brand-700">~{distance}</span> : null}
+        {place ? (
+          <span className="inline-flex items-center gap-1">
+            <PinIcon size={16} />
+            {place}
+          </span>
+        ) : null}
+        {distance ? <span className="text-brand-700 font-medium">~{distance}</span> : null}
         <span>Tajriba: {Number(c.experience_years ?? 0)} yil</span>
         {c.rating_count ? (
           <span className="inline-flex items-center gap-1 text-amber-600">
@@ -42,18 +47,24 @@ export function CandidateCard({ c }: { c: CandidateSearchRow }) {
         ) : null}
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        {c.availability ? <Badge tone={c.availability === "immediately" ? "success" : "neutral"}>{AVAILABILITY_LABELS[c.availability]}</Badge> : null}
+        {c.availability ? (
+          <Badge tone={c.availability === "immediately" ? "success" : "neutral"}>{AVAILABILITY_LABELS[c.availability]}</Badge>
+        ) : null}
         {(c.skills ?? []).slice(0, 4).map((s) => (
           <Badge key={s}>{s}</Badge>
         ))}
       </div>
-      <div className="mt-4 flex items-center justify-between gap-2">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-medium text-slate-900">
           {formatSalary(c.expected_salary_min, c.expected_salary_max, c.salary_type)}
         </span>
         <div className="flex gap-2">
-          <Link href={`/candidate/${c.id}`} className={buttonClass("outline", "sm")}>Profilni koʻrish</Link>
-          <Link href={`/candidate/${c.id}#contact`} className={buttonClass("primary", "sm")}>Bogʻlanish</Link>
+          <Link href={`/candidate/${c.id}`} className={buttonClass("outline", "sm")}>
+            Profilni koʻrish
+          </Link>
+          <Link href={`/candidate/${c.id}#contact`} className={buttonClass("primary", "sm")}>
+            Bogʻlanish
+          </Link>
         </div>
       </div>
     </Card>

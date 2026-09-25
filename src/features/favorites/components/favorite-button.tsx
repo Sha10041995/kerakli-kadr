@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { StarIcon } from "@/components/ui/icons";
 import { toggleFavoriteAction } from "@/features/favorites/actions";
 
-export function FavoriteButton({ kind, targetId, initial }: { kind: "vacancy" | "candidate"; targetId: string; initial: boolean }) {
+export function FavoriteButton({
+  kind,
+  targetId,
+  initial,
+}: {
+  kind: "vacancy" | "candidate";
+  targetId: string;
+  initial: boolean;
+}) {
   const [saved, setSaved] = useState(initial);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -16,11 +24,13 @@ export function FavoriteButton({ kind, targetId, initial }: { kind: "vacancy" | 
         size="sm"
         aria-pressed={saved}
         disabled={pending}
-        onClick={() => start(async () => {
-          const res = await toggleFavoriteAction(kind, targetId);
-          if (res.ok) setSaved(Boolean(res.data?.saved));
-          else setError(res.error);
-        })}
+        onClick={() =>
+          start(async () => {
+            const res = await toggleFavoriteAction(kind, targetId);
+            if (res.ok) setSaved(Boolean(res.data?.saved));
+            else setError(res.error);
+          })
+        }
       >
         <StarIcon size={16} className={saved ? "text-amber-500" : "text-slate-300"} />
         {saved ? "Saqlangan" : "Saqlash"}

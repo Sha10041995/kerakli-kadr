@@ -14,15 +14,23 @@ export async function SiteHeader() {
     <header className="no-print sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
       <Container className="flex h-14 items-center gap-4 sm:h-16">
         <Link href="/" className="flex items-center gap-2 font-extrabold tracking-tight text-slate-900">
-          <span className="inline-flex size-8 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">KT</span>
+          <span className="bg-brand-600 inline-flex size-8 items-center justify-center rounded-lg text-sm text-white">KT</span>
           <span className="hidden sm:inline">{SITE_NAME}</span>
         </Link>
         <nav aria-label="Asosiy menyu" className="hidden items-center gap-1 text-sm font-medium text-slate-600 md:flex">
-          <Link href="/jobs" className="rounded-md px-3 py-2 hover:bg-slate-100 hover:text-slate-900">Ishlar</Link>
-          <Link href="/candidates" className="rounded-md px-3 py-2 hover:bg-slate-100 hover:text-slate-900">Kadrlar</Link>
-          <Link href="/pricing" className="rounded-md px-3 py-2 hover:bg-slate-100 hover:text-slate-900">Tariflar</Link>
+          <Link href="/jobs" className="rounded-md px-3 py-2 hover:bg-slate-100 hover:text-slate-900">
+            Ishlar
+          </Link>
+          <Link href="/candidates" className="rounded-md px-3 py-2 hover:bg-slate-100 hover:text-slate-900">
+            Kadrlar
+          </Link>
+          <Link href="/pricing" className="rounded-md px-3 py-2 hover:bg-slate-100 hover:text-slate-900">
+            Tariflar
+          </Link>
           {user?.isStaff ? (
-            <Link href="/admin" className="rounded-md px-3 py-2 text-brand-700 hover:bg-brand-50">Admin</Link>
+            <Link href="/admin" className="text-brand-700 hover:bg-brand-50 rounded-md px-3 py-2">
+              Admin
+            </Link>
           ) : null}
         </nav>
         <div className="ml-auto flex items-center gap-2">
@@ -33,10 +41,18 @@ export async function SiteHeader() {
                   + Vakansiya
                 </ButtonLink>
               ) : null}
-              <Link href="/messages" aria-label="Xabarlar" className="hidden rounded-full p-2 text-slate-600 hover:bg-slate-100 md:inline-flex">
+              <Link
+                href="/messages"
+                aria-label="Xabarlar"
+                className="hidden rounded-full p-2 text-slate-600 hover:bg-slate-100 md:inline-flex"
+              >
                 <ChatIcon />
               </Link>
-              <Link href="/notifications" aria-label={`Bildirishnomalar${unread ? ` (${unread})` : ""}`} className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100">
+              <Link
+                href="/notifications"
+                aria-label={`Bildirishnomalar${unread ? ` (${unread})` : ""}`}
+                className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100"
+              >
                 <BellIcon />
                 {unread > 0 ? (
                   <span className="absolute top-1 right-1 inline-flex min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
@@ -44,14 +60,22 @@ export async function SiteHeader() {
                   </span>
                 ) : null}
               </Link>
-              <Link href="/dashboard" className="flex items-center gap-2 rounded-full p-1 hover:bg-slate-100" aria-label="Kabinet">
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 rounded-full p-1 hover:bg-slate-100"
+                aria-label="Kabinet"
+              >
                 <Avatar src={user.avatarUrl} first={user.firstName} last={user.lastName} size={32} />
               </Link>
             </>
           ) : (
             <>
-              <ButtonLink href="/login" variant="ghost" size="sm">Kirish</ButtonLink>
-              <ButtonLink href="/register" size="sm">Roʻyxatdan oʻtish</ButtonLink>
+              <ButtonLink href="/login" variant="ghost" size="sm">
+                Kirish
+              </ButtonLink>
+              <ButtonLink href="/register" size="sm">
+                Roʻyxatdan oʻtish
+              </ButtonLink>
             </>
           )}
         </div>

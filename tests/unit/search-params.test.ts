@@ -1,25 +1,52 @@
 import { describe, expect, it } from "vitest";
 import {
-  candidateRpcArgs, parseCandidateSearch, parseVacancySearch, searchToQuery, toQueryString, totalPages, vacancyRpcArgs,
+  candidateRpcArgs,
+  parseCandidateSearch,
+  parseVacancySearch,
+  searchToQuery,
+  toQueryString,
+  totalPages,
+  vacancyRpcArgs,
 } from "@/features/search/params";
 import { resolveSeoSegments, seoPath, seoTitle, type SeoLookup } from "@/features/search/seo-routes";
 
 describe("parseVacancySearch", () => {
   it("parses valid filters", () => {
     const s = parseVacancySearch({
-      q: " elektrik ", region: "6", district: "71", radius: "25", type: ["daily", "full_time"], remote: "1",
-      salary: "5000000", sort: "distance", page: "3",
+      q: " elektrik ",
+      region: "6",
+      district: "71",
+      radius: "25",
+      type: ["daily", "full_time"],
+      remote: "1",
+      salary: "5000000",
+      sort: "distance",
+      page: "3",
     });
     expect(s).toMatchObject({
-      q: "elektrik", region: 6, district: 71, radius: 25, types: ["daily", "full_time"], remote: true,
-      salary: 5000000, sort: "distance", page: 3,
+      q: "elektrik",
+      region: 6,
+      district: 71,
+      radius: 25,
+      types: ["daily", "full_time"],
+      remote: true,
+      salary: 5000000,
+      sort: "distance",
+      page: 3,
     });
   });
 
   it("drops malicious or malformed values", () => {
     const s = parseVacancySearch({
-      region: "1 OR 1=1", district: "-5", radius: "9999", type: ["hacker", "daily"], sort: "drop table",
-      page: "0", lat: "41.3", lng: "abc", q: "a".repeat(500),
+      region: "1 OR 1=1",
+      district: "-5",
+      radius: "9999",
+      type: ["hacker", "daily"],
+      sort: "drop table",
+      page: "0",
+      lat: "41.3",
+      lng: "abc",
+      q: "a".repeat(500),
     });
     expect(s.region).toBeUndefined();
     expect(s.district).toBeUndefined();
@@ -69,7 +96,8 @@ describe("query strings", () => {
 
 describe("SEO route resolution", () => {
   const lookup: SeoLookup = {
-    region: async (s) => (s === "xorazm" ? { id: 6, name: "Xorazm viloyati" } : s === "toshkent" ? { id: 1, name: "Toshkent shahri" } : null),
+    region: async (s) =>
+      s === "xorazm" ? { id: 6, name: "Xorazm viloyati" } : s === "toshkent" ? { id: 1, name: "Toshkent shahri" } : null,
     district: async (r, s) => (r === 6 && s === "urganch-shahri" ? { id: 70, name: "Urganch shahri" } : null),
     profession: async (s) => (s === "payvandchi" ? { id: 5, name: "Payvandchi" } : null),
   };

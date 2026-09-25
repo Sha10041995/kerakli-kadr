@@ -19,8 +19,12 @@ export function MockCheckout({ paymentId }: { paymentId: string }) {
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
-        <Button disabled={pending} onClick={() => finish("paid")}>Toʻlandi deb belgilash</Button>
-        <Button variant="outline" disabled={pending} onClick={() => finish("cancelled")}>Bekor qilish</Button>
+        <Button disabled={pending} onClick={() => finish("paid")}>
+          Toʻlandi deb belgilash
+        </Button>
+        <Button variant="outline" disabled={pending} onClick={() => finish("cancelled")}>
+          Bekor qilish
+        </Button>
       </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
     </div>

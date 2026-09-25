@@ -4,11 +4,7 @@ import { locationFields, moneySchema, optionalId, text } from "./common";
 export const vacancySchema = z
   .object({
     title: z.string().trim().min(3, { error: "Sarlavha kamida 3 ta belgi" }).max(160),
-    description: z
-      .string()
-      .trim()
-      .min(20, { error: "Tavsif kamida 20 ta belgi boʻlsin" })
-      .max(10000),
+    description: z.string().trim().min(20, { error: "Tavsif kamida 20 ta belgi boʻlsin" }).max(10000),
     professionId: z.number({ error: "Kasbni tanlang" }).int().positive(),
     categoryId: optionalId,
     experienceMinYears: z.number().min(0).max(50),
@@ -18,7 +14,15 @@ export const vacancySchema = z
     salaryCurrency: z.enum(["UZS", "USD"]),
     salaryType: z.enum(["monthly", "daily", "hourly", "per_task", "negotiable"]),
     employmentType: z.enum([
-      "full_time", "part_time", "temporary", "freelance", "daily", "hourly", "seasonal", "internship", "remote",
+      "full_time",
+      "part_time",
+      "temporary",
+      "freelance",
+      "daily",
+      "hourly",
+      "seasonal",
+      "internship",
+      "remote",
     ]),
     workSchedule: z.enum(["full_day", "shift", "flexible", "night", "weekends"]),
     positionsCount: z.number().int().min(1).max(1000),

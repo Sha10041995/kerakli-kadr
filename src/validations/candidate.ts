@@ -2,7 +2,15 @@ import { z } from "zod";
 import { locationFields, moneySchema, optionalId, optionalPhone, safeUrl, text } from "./common";
 
 const employmentType = z.enum([
-  "full_time", "part_time", "temporary", "freelance", "daily", "hourly", "seasonal", "internship", "remote",
+  "full_time",
+  "part_time",
+  "temporary",
+  "freelance",
+  "daily",
+  "hourly",
+  "seasonal",
+  "internship",
+  "remote",
 ]);
 const educationLevel = z.enum(["none", "secondary", "vocational", "bachelor", "master", "doctorate"]);
 
@@ -31,10 +39,10 @@ export const candidateProfileSchema = z
     ...locationFields,
   })
   .refine((v) => v.regionId != null, { path: ["regionId"], error: "Viloyatni tanlang" })
-  .refine(
-    (v) => v.expectedSalaryMin == null || v.expectedSalaryMax == null || v.expectedSalaryMax >= v.expectedSalaryMin,
-    { path: ["expectedSalaryMax"], error: "Maksimal maosh minimaldan kam boʻlmasin" },
-  );
+  .refine((v) => v.expectedSalaryMin == null || v.expectedSalaryMax == null || v.expectedSalaryMax >= v.expectedSalaryMin, {
+    path: ["expectedSalaryMax"],
+    error: "Maksimal maosh minimaldan kam boʻlmasin",
+  });
 export type CandidateProfileInput = z.input<typeof candidateProfileSchema>;
 export type CandidateProfileData = z.output<typeof candidateProfileSchema>;
 

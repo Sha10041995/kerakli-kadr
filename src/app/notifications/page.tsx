@@ -18,10 +18,23 @@ export default async function NotificationsPage() {
       <PageHeader
         title="Bildirishnomalar"
         description={unread ? `${unread} ta oʻqilmagan` : "Hammasi oʻqilgan"}
-        actions={unread ? <ConfirmButton className="text-sm font-medium text-brand-700 hover:underline" confirmText="Hammasini oʻqilgan deb belgilaysizmi?" onConfirm={markAllNotificationsReadAction}>Hammasini oʻqildi deb belgilash</ConfirmButton> : null}
+        actions={
+          unread ? (
+            <ConfirmButton
+              className="text-brand-700 text-sm font-medium hover:underline"
+              confirmText="Hammasini oʻqilgan deb belgilaysizmi?"
+              onConfirm={markAllNotificationsReadAction}
+            >
+              Hammasini oʻqildi deb belgilash
+            </ConfirmButton>
+          ) : null
+        }
       />
       {items.length === 0 ? (
-        <EmptyState title="Bildirishnomalar yoʻq" description="Yangi ariza, xabar yoki mos vakansiya chiqqanda shu yerda koʻrasiz." />
+        <EmptyState
+          title="Bildirishnomalar yoʻq"
+          description="Yangi ariza, xabar yoki mos vakansiya chiqqanda shu yerda koʻrasiz."
+        />
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white">
           {items.map((n) => {
@@ -34,7 +47,13 @@ export default async function NotificationsPage() {
             );
             return (
               <li key={n.id} className={cn(!n.read_at && "bg-brand-50/40")}>
-                {n.link ? <Link href={safeRedirectPath(n.link, "/dashboard")} className="block px-4 py-3 hover:bg-slate-50">{content}</Link> : <div className="px-4 py-3">{content}</div>}
+                {n.link ? (
+                  <Link href={safeRedirectPath(n.link, "/dashboard")} className="block px-4 py-3 hover:bg-slate-50">
+                    {content}
+                  </Link>
+                ) : (
+                  <div className="px-4 py-3">{content}</div>
+                )}
               </li>
             );
           })}

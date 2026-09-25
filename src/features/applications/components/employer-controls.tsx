@@ -35,7 +35,9 @@ export function StatusSelect({ applicationId, status }: { applicationId: string;
       >
         <option value="">{APPLICATION_STATUS_LABELS[status]} → …</option>
         {next.map((s) => (
-          <option key={s} value={s}>{APPLICATION_STATUS_LABELS[s]}</option>
+          <option key={s} value={s}>
+            {APPLICATION_STATUS_LABELS[s]}
+          </option>
         ))}
       </Select>
       {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
@@ -52,21 +54,53 @@ export function ContactButtons({ applicationId, candidateId }: { applicationId: 
     <div className="flex flex-wrap items-center gap-2">
       {contact ? (
         <span className="text-sm text-slate-800">
-          {contact.phone ? <a href={`tel:${contact.phone}`} className="font-medium text-brand-700">{contact.phone}</a> : "Telefon koʻrsatilmagan"}
-          {contact.email ? <> · <a href={`mailto:${contact.email}`} className="text-brand-700">{contact.email}</a></> : null}
+          {contact.phone ? (
+            <a href={`tel:${contact.phone}`} className="text-brand-700 font-medium">
+              {contact.phone}
+            </a>
+          ) : (
+            "Telefon koʻrsatilmagan"
+          )}
+          {contact.email ? (
+            <>
+              {" "}
+              ·{" "}
+              <a href={`mailto:${contact.email}`} className="text-brand-700">
+                {contact.email}
+              </a>
+            </>
+          ) : null}
         </span>
       ) : (
-        <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => {
-          const res = await revealContactAction(applicationId);
-          if (res.ok) setContact(res.data ?? null);
-          else setError(res.error);
-        })}>Kontaktni koʻrish</Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={pending}
+          onClick={() =>
+            start(async () => {
+              const res = await revealContactAction(applicationId);
+              if (res.ok) setContact(res.data ?? null);
+              else setError(res.error);
+            })
+          }
+        >
+          Kontaktni koʻrish
+        </Button>
       )}
-      <Button size="sm" variant="secondary" disabled={pending} onClick={() => start(async () => {
-        const res = await startConversationAction({ otherUserId: candidateId, applicationId });
-        if (res.ok && res.data) router.push(`/messages/${res.data.conversationId}`);
-        else if (!res.ok) setError(res.error);
-      })}>Xabar yozish</Button>
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled={pending}
+        onClick={() =>
+          start(async () => {
+            const res = await startConversationAction({ otherUserId: candidateId, applicationId });
+            if (res.ok && res.data) router.push(`/messages/${res.data.conversationId}`);
+            else if (!res.ok) setError(res.error);
+          })
+        }
+      >
+        Xabar yozish
+      </Button>
       {error ? <span className="text-xs text-red-600">{error}</span> : null}
     </div>
   );

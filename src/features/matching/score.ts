@@ -4,14 +4,29 @@
 // Factor weights are admin-configurable (app_settings: matching.weights).
 
 export const MATCH_FACTORS = [
-  "location", "distance", "profession", "skills", "experience", "availability", "salary", "rating", "completeness",
+  "location",
+  "distance",
+  "profession",
+  "skills",
+  "experience",
+  "availability",
+  "salary",
+  "rating",
+  "completeness",
 ] as const;
 export type MatchFactor = (typeof MATCH_FACTORS)[number];
 export type MatchWeights = Record<MatchFactor, number>;
 
 export const DEFAULT_WEIGHTS: MatchWeights = {
-  location: 25, distance: 10, profession: 20, skills: 15, experience: 10,
-  availability: 5, salary: 5, rating: 5, completeness: 5,
+  location: 25,
+  distance: 10,
+  profession: 20,
+  skills: 15,
+  experience: 10,
+  availability: 5,
+  salary: 5,
+  rating: 5,
+  completeness: 5,
 };
 
 export const FACTOR_LABELS: Record<MatchFactor, string> = {
@@ -62,7 +77,11 @@ const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 const TIER_VALUE: Record<number, number> = { 0: 0.5, 1: 1, 2: 0.95, 3: 0.85, 4: 0.6, 5: 0.45, 6: 0.25, 7: 0 };
 
 const AVAILABILITY_VALUE: Record<string, number> = {
-  immediately: 1, within_week: 0.85, within_month: 0.6, open_to_offers: 0.5, not_available: 0,
+  immediately: 1,
+  within_week: 0.85,
+  within_month: 0.6,
+  open_to_offers: 0.5,
+  not_available: 0,
 };
 
 export function factorValues(f: MatchFeatures): Record<MatchFactor, number> {
@@ -107,11 +126,14 @@ export function computeMatch(features: MatchFeatures, weights: MatchWeights = DE
   const score = Math.round(breakdown.reduce((s, b) => s + b.points, 0));
 
   const reasons: string[] = [];
-  if (features.locationTier != null && features.locationTier >= 1 && features.locationTier <= 3) reasons.push("Aynan shu hududdan");
+  if (features.locationTier != null && features.locationTier >= 1 && features.locationTier <= 3)
+    reasons.push("Aynan shu hududdan");
   else if (features.distanceKm != null && features.distanceKm <= 10) reasons.push("10 km ichida");
   if (features.sameProfession) reasons.push("Kasbi mos");
-  if (features.skillsRequired && features.skillsMatched) reasons.push(`${features.skillsMatched}/${features.skillsRequired} koʻnikma mos`);
-  if (features.requiredExperience && (features.experienceYears ?? 0) >= features.requiredExperience) reasons.push("Tajribasi yetarli");
+  if (features.skillsRequired && features.skillsMatched)
+    reasons.push(`${features.skillsMatched}/${features.skillsRequired} koʻnikma mos`);
+  if (features.requiredExperience && (features.experienceYears ?? 0) >= features.requiredExperience)
+    reasons.push("Tajribasi yetarli");
   if (features.availability === "immediately") reasons.push("Darhol ishga tayyor");
 
   return { score: Math.min(100, Math.max(0, score)), breakdown, reasons };

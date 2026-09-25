@@ -23,8 +23,7 @@ export const EXTENSIONS: Record<AllowedMime, string> = {
   "application/pdf": "pdf",
 };
 
-const startsWith = (bytes: Uint8Array, sig: number[], offset = 0) =>
-  sig.every((b, i) => bytes[offset + i] === b);
+const startsWith = (bytes: Uint8Array, sig: number[], offset = 0) => sig.every((b, i) => bytes[offset + i] === b);
 
 /** Detects the real file type from its first bytes. */
 export function sniffMime(bytes: Uint8Array): AllowedMime | null {
@@ -35,9 +34,7 @@ export function sniffMime(bytes: Uint8Array): AllowedMime | null {
   return null;
 }
 
-export type FileCheck =
-  | { ok: true; mime: AllowedMime; ext: string }
-  | { ok: false; error: string };
+export type FileCheck = { ok: true; mime: AllowedMime; ext: string } | { ok: false; error: string };
 
 export function validateUpload(bucket: Bucket, bytes: Uint8Array, size: number): FileCheck {
   const rule = UPLOAD_RULES[bucket];

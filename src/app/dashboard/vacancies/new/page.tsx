@@ -23,9 +23,16 @@ export default async function NewVacancyPage() {
   ]);
   return (
     <>
-      <PageHeader title="Yangi vakansiya" description="Aniq hudud koʻrsatilgan vakansiyalar eng yaqin nomzodlarga birinchi koʻrsatiladi." />
+      <PageHeader
+        title="Yangi vakansiya"
+        description="Aniq hudud koʻrsatilgan vakansiyalar eng yaqin nomzodlarga birinchi koʻrsatiladi."
+      />
       <VacancyForm
-        defaults={emptyVacancy({ regionId: company?.region_id, districtId: company?.district_id, settlementId: company?.settlement_id })}
+        defaults={emptyVacancy({
+          regionId: company?.region_id,
+          districtId: company?.district_id,
+          settlementId: company?.settlement_id,
+        })}
         regions={regions}
         catalog={catalog}
         skills={skills}

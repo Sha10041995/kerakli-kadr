@@ -85,7 +85,7 @@ describe("rate limiter", () => {
 
 describe("error mapping", () => {
   it("maps database errors to Uzbek messages and hides internals", () => {
-    expect(toUserMessage({ message: 'VACANCY_LIMIT_REACHED' })).toMatch(/limit/);
+    expect(toUserMessage({ message: "VACANCY_LIMIT_REACHED" })).toMatch(/limit/);
     expect(toUserMessage({ message: "new row violates row-level security policy for table x" })).toMatch(/ruxsat/);
     expect(toUserMessage({ message: 'relation "secret_table" does not exist' })).not.toMatch(/secret/);
     expect(toUserMessage(null)).toMatch(/Xatolik/);
@@ -119,5 +119,13 @@ describe("formatting", () => {
   });
   it("escapes JSON-LD", () => {
     expect(jsonLdScript({ t: "</script><script>alert(1)</script>" })).not.toContain("</script>");
+  });
+});
+
+describe("cn (class merging)", () => {
+  it("lets overrides replace component defaults", async () => {
+    const { cn } = await import("@/lib/utils");
+    expect(cn("bg-white p-4", "bg-slate-900")).toBe("p-4 bg-slate-900");
+    expect(cn("bg-brand-600 text-white", "bg-white text-brand-800")).toBe("bg-white text-brand-800");
   });
 });

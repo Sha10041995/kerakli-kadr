@@ -48,7 +48,11 @@ export async function saveCompanyAction(input: unknown): Promise<ActionResult<{ 
   }
 
   const slug = `${slugify(d.name) || "kompaniya"}-${globalThis.crypto.randomUUID().slice(0, 6)}`;
-  const { data, error } = await supabase.from("companies").insert({ ...values, owner_id: userId, slug }).select("id").single();
+  const { data, error } = await supabase
+    .from("companies")
+    .insert({ ...values, owner_id: userId, slug })
+    .select("id")
+    .single();
   if (error) return fail(toUserMessage(error));
   revalidatePath("/dashboard", "layout");
   return { ok: true, data: { id: data.id }, message: "Kompaniya yaratildi" };
@@ -62,7 +66,10 @@ export async function uploadCompanyLogoAction(formData: FormData): Promise<Actio
   const up = await uploadFile("company-logos", file);
   if (!up.ok) return fail(up.error);
   // RLS: only the company owner can update the row.
-  const { error, count } = await supabase.from("companies").update({ logo_url: up.publicUrl }, { count: "exact" }).eq("id", companyId);
+  const { error, count } = await supabase
+    .from("companies")
+    .update({ logo_url: up.publicUrl }, { count: "exact" })
+    .eq("id", companyId);
   if (error) return fail(toUserMessage(error));
   if (!count) return fail("Ruxsat yoʻq");
   revalidatePath("/dashboard/company");

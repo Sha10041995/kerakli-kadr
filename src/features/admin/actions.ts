@@ -24,14 +24,19 @@ async function staffContext(adminOnly = false) {
 const DENIED = "Bu amal uchun ruxsat yoʻq.";
 
 export async function moderateVacancyAction(input: unknown): Promise<ActionResult> {
-  const parsed = z.object({ id: uuidSchema, status: z.enum(["active", "rejected", "closed"]), reason: z.string().max(1000).optional() }).safeParse(input);
+  const parsed = z
+    .object({ id: uuidSchema, status: z.enum(["active", "rejected", "closed"]), reason: z.string().max(1000).optional() })
+    .safeParse(input);
   if (!parsed.success) return fail("Notoʻgʻri soʻrov");
   const ctx = await staffContext();
   if (!ctx.ok) return fail(DENIED);
   if (parsed.data.status === "rejected" && !parsed.data.reason?.trim()) return fail("Rad etish sababini yozing");
   const { error } = await ctx.supabase
     .from("vacancies")
-    .update({ status: parsed.data.status, rejection_reason: parsed.data.status === "rejected" ? parsed.data.reason!.trim() : null })
+    .update({
+      status: parsed.data.status,
+      rejection_reason: parsed.data.status === "rejected" ? parsed.data.reason!.trim() : null,
+    })
     .eq("id", parsed.data.id);
   if (error) return fail(toUserMessage(error));
   revalidatePath("/admin/vacancies");
@@ -39,7 +44,14 @@ export async function moderateVacancyAction(input: unknown): Promise<ActionResul
 }
 
 export async function resolveReportAction(input: unknown): Promise<ActionResult> {
-  const parsed = z.object({ id: uuidSchema, status: z.enum(["resolved", "dismissed", "reviewing"]), note: z.string().max(2000).optional(), hideVacancy: z.boolean().optional() }).safeParse(input);
+  const parsed = z
+    .object({
+      id: uuidSchema,
+      status: z.enum(["resolved", "dismissed", "reviewing"]),
+      note: z.string().max(2000).optional(),
+      hideVacancy: z.boolean().optional(),
+    })
+    .safeParse(input);
   if (!parsed.success) return fail("Notoʻgʻri soʻrov");
   const ctx = await staffContext();
   if (!ctx.ok) return fail(DENIED);
@@ -51,18 +63,26 @@ export async function resolveReportAction(input: unknown): Promise<ActionResult>
     .single();
   if (error) return fail(toUserMessage(error));
   if (parsed.data.hideVacancy && report.target_type === "vacancy") {
-    await ctx.supabase.from("vacancies").update({ status: "rejected", rejection_reason: parsed.data.note || "Shikoyat asosida bloklandi" }).eq("id", report.target_id);
+    await ctx.supabase
+      .from("vacancies")
+      .update({ status: "rejected", rejection_reason: parsed.data.note || "Shikoyat asosida bloklandi" })
+      .eq("id", report.target_id);
   }
   revalidatePath("/admin/reports");
   return { ok: true };
 }
 
 export async function decideVerificationAction(input: unknown): Promise<ActionResult> {
-  const parsed = z.object({ id: uuidSchema, status: z.enum(["approved", "rejected"]), note: z.string().max(1000).optional() }).safeParse(input);
+  const parsed = z
+    .object({ id: uuidSchema, status: z.enum(["approved", "rejected"]), note: z.string().max(1000).optional() })
+    .safeParse(input);
   if (!parsed.success) return fail("Notoʻgʻri soʻrov");
   const ctx = await staffContext();
   if (!ctx.ok) return fail(DENIED);
-  const { error } = await ctx.supabase.from("verification_requests").update({ status: parsed.data.status, admin_note: parsed.data.note || null }).eq("id", parsed.data.id);
+  const { error } = await ctx.supabase
+    .from("verification_requests")
+    .update({ status: parsed.data.status, admin_note: parsed.data.note || null })
+    .eq("id", parsed.data.id);
   if (error) return fail(toUserMessage(error));
   revalidatePath("/admin/verification");
   return { ok: true };
@@ -95,9 +115,12 @@ export async function setUserRoleAction(input: unknown): Promise<ActionResult> {
   if (!parsed.success) return fail("Notoʻgʻri soʻrov");
   const ctx = await staffContext(true);
   if (!ctx.ok) return fail(DENIED);
-  if ((parsed.data.role === "admin" || parsed.data.role === "super_admin") && !ctx.isSuper) return fail("Faqat super administrator");
+  if ((parsed.data.role === "admin" || parsed.data.role === "super_admin") && !ctx.isSuper)
+    return fail("Faqat super administrator");
   const { error } = parsed.data.grant
-    ? await ctx.supabase.from("user_roles").insert({ user_id: parsed.data.userId, role: parsed.data.role, granted_by: ctx.userId })
+    ? await ctx.supabase
+        .from("user_roles")
+        .insert({ user_id: parsed.data.userId, role: parsed.data.role, granted_by: ctx.userId })
     : await ctx.supabase.from("user_roles").delete().eq("user_id", parsed.data.userId).eq("role", parsed.data.role);
   if (error) return fail(toUserMessage(error));
   revalidatePath("/admin/users");
@@ -117,7 +140,11 @@ export async function setReviewStatusAction(id: string, status: "published" | "h
 // ---- Locations ----------------------------------------------------------------
 const LOCATION_TABLES = ["regions", "districts", "settlements", "mahallas"] as const;
 
-export async function toggleLocationAction(table: (typeof LOCATION_TABLES)[number], id: number, active: boolean): Promise<ActionResult> {
+export async function toggleLocationAction(
+  table: (typeof LOCATION_TABLES)[number],
+  id: number,
+  active: boolean,
+): Promise<ActionResult> {
   if (!LOCATION_TABLES.includes(table) || !Number.isInteger(id)) return fail("Notoʻgʻri soʻrov");
   const ctx = await staffContext(true);
   if (!ctx.ok) return fail(DENIED);
@@ -148,10 +175,20 @@ export async function addLocationAction(input: unknown): Promise<ActionResult> {
   const coords = { lat: d.lat ?? null, lng: d.lng ?? null };
   const { error } =
     d.level === "district"
-      ? await ctx.supabase.from("districts").insert({ region_id: d.parentId, slug, name_uz: d.name, kind: d.kind === "city" ? "city" : "district", ...coords })
+      ? await ctx.supabase
+          .from("districts")
+          .insert({ region_id: d.parentId, slug, name_uz: d.name, kind: d.kind === "city" ? "city" : "district", ...coords })
       : d.level === "settlement"
-        ? await ctx.supabase.from("settlements").insert({ district_id: d.parentId, slug, name_uz: d.name, kind: d.kind === "city" ? "city" : d.kind === "town" ? "town" : "village", ...coords })
-        : await ctx.supabase.from("mahallas").insert({ district_id: d.parentId, settlement_id: d.settlementId ?? null, slug, name_uz: d.name, ...coords });
+        ? await ctx.supabase.from("settlements").insert({
+            district_id: d.parentId,
+            slug,
+            name_uz: d.name,
+            kind: d.kind === "city" ? "city" : d.kind === "town" ? "town" : "village",
+            ...coords,
+          })
+        : await ctx.supabase
+            .from("mahallas")
+            .insert({ district_id: d.parentId, settlement_id: d.settlementId ?? null, slug, name_uz: d.name, ...coords });
   if (error) return fail(toUserMessage(error));
   revalidatePath("/admin/locations");
   return { ok: true, message: "Qoʻshildi" };
@@ -159,13 +196,26 @@ export async function addLocationAction(input: unknown): Promise<ActionResult> {
 
 // ---- Catalogue ----------------------------------------------------------------
 export async function addProfessionAction(input: unknown): Promise<ActionResult> {
-  const parsed = z.object({ categoryId: z.number().int().positive(), name: z.string().trim().min(2).max(120), synonyms: z.string().max(500).optional() }).safeParse(input);
+  const parsed = z
+    .object({
+      categoryId: z.number().int().positive(),
+      name: z.string().trim().min(2).max(120),
+      synonyms: z.string().max(500).optional(),
+    })
+    .safeParse(input);
   if (!parsed.success) return fail("Maʼlumotlarni tekshiring");
   const ctx = await staffContext(true);
   if (!ctx.ok) return fail(DENIED);
-  const synonyms = (parsed.data.synonyms ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean).slice(0, 20);
+  const synonyms = (parsed.data.synonyms ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean)
+    .slice(0, 20);
   const { error } = await ctx.supabase.from("professions").insert({
-    category_id: parsed.data.categoryId, name_uz: parsed.data.name, slug: slugify(parsed.data.name), synonyms,
+    category_id: parsed.data.categoryId,
+    name_uz: parsed.data.name,
+    slug: slugify(parsed.data.name),
+    synonyms,
   });
   if (error) return fail(toUserMessage(error));
   revalidatePath("/admin/categories");
@@ -173,17 +223,32 @@ export async function addProfessionAction(input: unknown): Promise<ActionResult>
 }
 
 export async function addCategoryAction(input: unknown): Promise<ActionResult> {
-  const parsed = z.object({ name: z.string().trim().min(2).max(120), icon: z.string().max(8).optional(), parentId: z.number().int().positive().nullable().optional() }).safeParse(input);
+  const parsed = z
+    .object({
+      name: z.string().trim().min(2).max(120),
+      icon: z.string().max(8).optional(),
+      parentId: z.number().int().positive().nullable().optional(),
+    })
+    .safeParse(input);
   if (!parsed.success) return fail("Maʼlumotlarni tekshiring");
   const ctx = await staffContext(true);
   if (!ctx.ok) return fail(DENIED);
-  const { error } = await ctx.supabase.from("categories").insert({ name_uz: parsed.data.name, slug: slugify(parsed.data.name), icon: parsed.data.icon || null, parent_id: parsed.data.parentId ?? null });
+  const { error } = await ctx.supabase.from("categories").insert({
+    name_uz: parsed.data.name,
+    slug: slugify(parsed.data.name),
+    icon: parsed.data.icon || null,
+    parent_id: parsed.data.parentId ?? null,
+  });
   if (error) return fail(toUserMessage(error));
   revalidatePath("/admin/categories");
   return { ok: true, message: "Kategoriya qoʻshildi" };
 }
 
-export async function toggleCatalogAction(table: "categories" | "professions" | "skills", id: number, active: boolean): Promise<ActionResult> {
+export async function toggleCatalogAction(
+  table: "categories" | "professions" | "skills",
+  id: number,
+  active: boolean,
+): Promise<ActionResult> {
   if (!["categories", "professions", "skills"].includes(table) || !Number.isInteger(id)) return fail("Notoʻgʻri soʻrov");
   const ctx = await staffContext(true);
   if (!ctx.ok) return fail(DENIED);
@@ -195,12 +260,22 @@ export async function toggleCatalogAction(table: "categories" | "professions" | 
 
 // ---- Monetisation & settings ---------------------------------------------------
 export async function updatePriceAction(input: unknown): Promise<ActionResult> {
-  const parsed = z.object({ kind: z.enum(["plan", "service"]), id: z.number().int().positive(), priceUzs: z.number().int().min(0).max(1_000_000_000), isActive: z.boolean() }).safeParse(input);
+  const parsed = z
+    .object({
+      kind: z.enum(["plan", "service"]),
+      id: z.number().int().positive(),
+      priceUzs: z.number().int().min(0).max(1_000_000_000),
+      isActive: z.boolean(),
+    })
+    .safeParse(input);
   if (!parsed.success) return fail("Maʼlumotlarni tekshiring");
   const ctx = await staffContext(true);
   if (!ctx.ok) return fail(DENIED);
   const table = parsed.data.kind === "plan" ? "subscription_plans" : "paid_services";
-  const { error } = await ctx.supabase.from(table).update({ price_uzs: parsed.data.priceUzs, is_active: parsed.data.isActive }).eq("id", parsed.data.id);
+  const { error } = await ctx.supabase
+    .from(table)
+    .update({ price_uzs: parsed.data.priceUzs, is_active: parsed.data.isActive })
+    .eq("id", parsed.data.id);
   if (error) return fail(toUserMessage(error));
   revalidatePath("/admin/plans");
   revalidatePath("/pricing");
@@ -208,12 +283,14 @@ export async function updatePriceAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function updateSettingsAction(input: unknown): Promise<ActionResult> {
-  const parsed = z.object({
-    weights: z.record(z.string(), z.number().min(0).max(100)),
-    autoPublish: z.boolean(),
-    durationDays: z.number().int().min(1).max(365),
-    autoHideReports: z.number().int().min(1).max(100),
-  }).safeParse(input);
+  const parsed = z
+    .object({
+      weights: z.record(z.string(), z.number().min(0).max(100)),
+      autoPublish: z.boolean(),
+      durationDays: z.number().int().min(1).max(365),
+      autoHideReports: z.number().int().min(1).max(100),
+    })
+    .safeParse(input);
   if (!parsed.success) return fail("Maʼlumotlarni tekshiring");
   const ctx = await staffContext(true);
   if (!ctx.ok) return fail(DENIED);
@@ -224,7 +301,10 @@ export async function updateSettingsAction(input: unknown): Promise<ActionResult
     { key: "moderation.auto_hide_reports", value: parsed.data.autoHideReports },
   ];
   for (const row of rows) {
-    const { error } = await ctx.supabase.from("app_settings").update({ value: row.value, updated_by: ctx.userId, updated_at: new Date().toISOString() }).eq("key", row.key);
+    const { error } = await ctx.supabase
+      .from("app_settings")
+      .update({ value: row.value, updated_by: ctx.userId, updated_at: new Date().toISOString() })
+      .eq("key", row.key);
     if (error) return fail(toUserMessage(error));
   }
   revalidatePath("/admin/settings");

@@ -13,25 +13,61 @@ export function SiteFooter() {
         <div>
           <p className="font-semibold text-slate-900">Ish izlovchilar uchun</p>
           <ul className="mt-2 space-y-1">
-            <li><Link href="/jobs" className="hover:text-brand-700">Vakansiyalar</Link></li>
-            <li><Link href="/register?role=job_seeker" className="hover:text-brand-700">Rezyume yaratish</Link></li>
-            <li><Link href="/jobs?urgent=1" className="hover:text-brand-700">Shoshilinch ishlar</Link></li>
+            <li>
+              <Link href="/jobs" className="hover:text-brand-700">
+                Vakansiyalar
+              </Link>
+            </li>
+            <li>
+              <Link href="/register?role=job_seeker" className="hover:text-brand-700">
+                Rezyume yaratish
+              </Link>
+            </li>
+            <li>
+              <Link href="/jobs?urgent=1" className="hover:text-brand-700">
+                Shoshilinch ishlar
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
           <p className="font-semibold text-slate-900">Ish beruvchilar uchun</p>
           <ul className="mt-2 space-y-1">
-            <li><Link href="/candidates" className="hover:text-brand-700">Kadrlar bazasi</Link></li>
-            <li><Link href="/register?role=employer" className="hover:text-brand-700">Vakansiya joylash</Link></li>
-            <li><Link href="/pricing" className="hover:text-brand-700">Tariflar</Link></li>
+            <li>
+              <Link href="/candidates" className="hover:text-brand-700">
+                Kadrlar bazasi
+              </Link>
+            </li>
+            <li>
+              <Link href="/register?role=employer" className="hover:text-brand-700">
+                Vakansiya joylash
+              </Link>
+            </li>
+            <li>
+              <Link href="/pricing" className="hover:text-brand-700">
+                Tariflar
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
           <p className="font-semibold text-slate-900">Platforma</p>
           <ul className="mt-2 space-y-1">
-            <li><Link href="/about" className="hover:text-brand-700">Biz haqimizda</Link></li>
-            <li><Link href="/privacy" className="hover:text-brand-700">Maxfiylik siyosati</Link></li>
-            <li><Link href="/terms" className="hover:text-brand-700">Foydalanish shartlari</Link></li>
+            <li>
+              <Link href="/about" className="hover:text-brand-700">
+                Biz haqimizda
+              </Link>
+            </li>
+            <li>
+              <Link href="/privacy" className="hover:text-brand-700">
+                Maxfiylik siyosati
+              </Link>
+            </li>
+            <li>
+              <Link href="/terms" className="hover:text-brand-700">
+                Foydalanish shartlari
+              </Link>
+            </li>
           </ul>
         </div>
       </Container>

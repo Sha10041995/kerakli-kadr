@@ -7,10 +7,22 @@ export type RawSearchParams = Record<string, string | string[] | undefined>;
 export const PAGE_SIZE = 20;
 
 const EMPLOYMENT_TYPES: Enums<"employment_type">[] = [
-  "full_time", "part_time", "temporary", "freelance", "daily", "hourly", "seasonal", "internship", "remote",
+  "full_time",
+  "part_time",
+  "temporary",
+  "freelance",
+  "daily",
+  "hourly",
+  "seasonal",
+  "internship",
+  "remote",
 ];
 const AVAILABILITY: Enums<"availability_status">[] = [
-  "immediately", "within_week", "within_month", "open_to_offers", "not_available",
+  "immediately",
+  "within_week",
+  "within_month",
+  "open_to_offers",
+  "not_available",
 ];
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
@@ -33,7 +45,9 @@ function float(v: string | string[] | undefined, min: number, max: number): numb
 const flag = (v: string | string[] | undefined) => first(v) === "1" || first(v) === "true";
 
 function text(v: string | string[] | undefined, max = 80): string | undefined {
-  const s = first(v)?.replace(/[\u0000-\u001F\u007F]/g, "").trim();
+  const s = first(v)
+    ?.replace(/[\u0000-\u001F\u007F]/g, "")
+    .trim();
   return s ? s.slice(0, max) : undefined;
 }
 
@@ -43,7 +57,13 @@ function oneOf<T extends string>(v: string | string[] | undefined, allowed: read
 }
 
 function manyOf<T extends string>(v: string | string[] | undefined, allowed: readonly T[]): T[] {
-  return [...new Set(all(v).flatMap((s) => s.split(",")).filter((s): s is T => (allowed as readonly string[]).includes(s)))];
+  return [
+    ...new Set(
+      all(v)
+        .flatMap((s) => s.split(","))
+        .filter((s): s is T => (allowed as readonly string[]).includes(s)),
+    ),
+  ];
 }
 
 type LocationFilters = {
@@ -126,7 +146,13 @@ export function parseCandidateSearch(p: RawSearchParams): CandidateSearch {
     exp: int(p.exp, 0, 50),
     salary: int(p.salary, 1, 10_000_000_000),
     rating: int(p.rating, 1, 5),
-    skills: [...new Set(all(p.skill).map((s) => int(s)).filter((n): n is number => n !== undefined))].slice(0, 10),
+    skills: [
+      ...new Set(
+        all(p.skill)
+          .map((s) => int(s))
+          .filter((n): n is number => n !== undefined),
+      ),
+    ].slice(0, 10),
     verified: flag(p.verified),
     transport: flag(p.transport),
     remote: flag(p.remote),

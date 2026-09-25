@@ -25,4 +25,3 @@ export function authEnv() {
     GOTRUE_LOG_LEVEL: "warn",
   };
 }
-

@@ -6,7 +6,11 @@ import { fail, toUserMessage, type ActionResult } from "@/lib/errors";
 import { uploadFile } from "@/features/uploads";
 import { fieldErrors, uuidSchema } from "@/validations/common";
 import {
-  candidateProfileSchema, certificateSchema, educationSchema, experienceSchema, portfolioSchema,
+  candidateProfileSchema,
+  certificateSchema,
+  educationSchema,
+  experienceSchema,
+  portfolioSchema,
 } from "@/validations/candidate";
 
 async function authed() {
@@ -63,7 +67,9 @@ export async function saveCandidateProfileAction(input: unknown): Promise<Action
   const toInsert = [...wanted].filter((id) => !current.has(id));
   if (toDelete.length) await supabase.from("candidate_skills").delete().eq("candidate_id", userId).in("skill_id", toDelete);
   if (toInsert.length) {
-    const { error: sErr } = await supabase.from("candidate_skills").insert(toInsert.map((skill_id) => ({ candidate_id: userId, skill_id })));
+    const { error: sErr } = await supabase
+      .from("candidate_skills")
+      .insert(toInsert.map((skill_id) => ({ candidate_id: userId, skill_id })));
     if (sErr) return fail(toUserMessage(sErr));
   }
 
@@ -100,8 +106,12 @@ export async function addEducationAction(input: unknown): Promise<ActionResult> 
   if (!userId) return fail("Iltimos, avval tizimga kiring.");
   const d = parsed.data;
   const { error } = await supabase.from("candidate_education").insert({
-    candidate_id: userId, institution: d.institution, level: d.level, field: d.field || null,
-    start_year: d.startYear ?? null, end_year: d.endYear ?? null,
+    candidate_id: userId,
+    institution: d.institution,
+    level: d.level,
+    field: d.field || null,
+    start_year: d.startYear ?? null,
+    end_year: d.endYear ?? null,
   });
   if (error) return fail(toUserMessage(error));
   revalidatePath("/dashboard/profile");
@@ -125,8 +135,11 @@ export async function addCertificateAction(formData: FormData): Promise<ActionRe
     filePath = up.path;
   }
   const { error } = await supabase.from("candidate_certificates").insert({
-    candidate_id: userId, name: parsed.data.name, issuer: parsed.data.issuer || null,
-    issued_at: parsed.data.issuedAt || null, file_path: filePath,
+    candidate_id: userId,
+    name: parsed.data.name,
+    issuer: parsed.data.issuer || null,
+    issued_at: parsed.data.issuedAt || null,
+    file_path: filePath,
   });
   if (error) return fail(toUserMessage(error));
   revalidatePath("/dashboard/profile");
@@ -150,8 +163,11 @@ export async function addPortfolioAction(formData: FormData): Promise<ActionResu
     imagePath = up.publicUrl;
   }
   const { error } = await supabase.from("candidate_portfolio").insert({
-    candidate_id: userId, title: parsed.data.title, description: parsed.data.description || null,
-    url: parsed.data.url || null, image_path: imagePath,
+    candidate_id: userId,
+    title: parsed.data.title,
+    description: parsed.data.description || null,
+    url: parsed.data.url || null,
+    image_path: imagePath,
   });
   if (error) return fail(toUserMessage(error));
   revalidatePath("/dashboard/profile");

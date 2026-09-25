@@ -1,7 +1,29 @@
 import { clsx, type ClassValue } from "clsx";
+import { extendTailwindMerge } from "tailwind-merge";
+
+// Custom theme colours (brand/accent) must be known to tailwind-merge so that
+// overrides like className="bg-slate-900" replace a component's default bg.
+const twMerge = extendTailwindMerge({
+  extend: {
+    theme: {
+      color: [
+        "brand-50",
+        "brand-100",
+        "brand-200",
+        "brand-500",
+        "brand-600",
+        "brand-700",
+        "brand-800",
+        "brand-900",
+        "accent-400",
+        "accent-500",
+      ],
+    },
+  },
+});
 
 export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs);
+  return twMerge(clsx(inputs));
 }
 
 const numberFormat = new Intl.NumberFormat("uz-UZ", { maximumFractionDigits: 0 });

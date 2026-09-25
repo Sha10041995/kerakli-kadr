@@ -85,7 +85,10 @@ function serveFile(res, bucket, name) {
 }
 
 async function handleStorage(req, res, url) {
-  const parts = url.pathname.replace(/^\/storage\/v1\//, "").split("/").map(decodeURIComponent);
+  const parts = url.pathname
+    .replace(/^\/storage\/v1\//, "")
+    .split("/")
+    .map(decodeURIComponent);
   const [kind, second, ...rest] = parts;
 
   if (kind !== "object") return json(res, 404, { message: "not supported by local gateway" });
@@ -106,18 +109,28 @@ async function handleStorage(req, res, url) {
       const token = url.searchParams.get("token") ?? "";
       const [exp, sig] = token.split(".");
       const expected = sign(`${bucket}/${name}:${exp}`);
-      if (!sig || sig.length !== expected.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expected)) || Number(exp) < Date.now()) {
+      if (
+        !sig ||
+        sig.length !== expected.length ||
+        !timingSafeEqual(Buffer.from(sig), Buffer.from(expected)) ||
+        Number(exp) < Date.now()
+      ) {
         return json(res, 400, { message: "invalid signature" });
       }
       return serveFile(res, bucket, name);
     }
     const body = JSON.parse((await readBody(req)).toString() || "{}");
     const claims = claimsFrom(req);
-    const found = await asUser(claims, async (c) => (await c.query("select 1 from storage.objects where bucket_id = $1 and name = $2", [bucket, name])).rowCount);
+    const found = await asUser(
+      claims,
+      async (c) => (await c.query("select 1 from storage.objects where bucket_id = $1 and name = $2", [bucket, name])).rowCount,
+    );
     if (!found) return json(res, 400, { statusCode: "404", error: "not_found", message: "Object not found" });
     const exp = Date.now() + Math.min(Number(body.expiresIn ?? 60), 3600) * 1000;
     const token = `${exp}.${sign(`${bucket}/${name}:${exp}`)}`;
-    return json(res, 200, { signedURL: `/object/sign/${encodeURIComponent(bucket)}/${nameParts.map(encodeURIComponent).join("/")}?token=${token}` });
+    return json(res, 200, {
+      signedURL: `/object/sign/${encodeURIComponent(bucket)}/${nameParts.map(encodeURIComponent).join("/")}?token=${token}`,
+    });
   }
 
   // Upload
@@ -129,13 +142,23 @@ async function handleStorage(req, res, url) {
     const mimetype = String(req.headers["content-type"] ?? "application/octet-stream").split(";")[0];
     const { rows } = await pool.query("select file_size_limit, allowed_mime_types from storage.buckets where id = $1", [bucket]);
     if (!rows[0]) return json(res, 400, { statusCode: "404", error: "Bucket not found", message: "Bucket not found" });
-    if (rows[0].file_size_limit && bytes.length > Number(rows[0].file_size_limit)) return json(res, 413, { statusCode: "413", error: "Payload too large", message: "The object exceeded the maximum allowed size" });
-    if (rows[0].allowed_mime_types && !rows[0].allowed_mime_types.includes(mimetype)) return json(res, 415, { statusCode: "415", error: "invalid_mime_type", message: `mime type ${mimetype} is not supported` });
+    if (rows[0].file_size_limit && bytes.length > Number(rows[0].file_size_limit))
+      return json(res, 413, {
+        statusCode: "413",
+        error: "Payload too large",
+        message: "The object exceeded the maximum allowed size",
+      });
+    if (rows[0].allowed_mime_types && !rows[0].allowed_mime_types.includes(mimetype))
+      return json(res, 415, { statusCode: "415", error: "invalid_mime_type", message: `mime type ${mimetype} is not supported` });
     const id = randomUUID();
     try {
       await asUser(claims, (c) =>
         c.query("insert into storage.objects (id, bucket_id, name, owner, metadata) values ($1, $2, $3, $4, $5)", [
-          id, bucket, name, claims?.sub ?? null, { mimetype, size: bytes.length },
+          id,
+          bucket,
+          name,
+          claims?.sub ?? null,
+          { mimetype, size: bytes.length },
         ]),
       );
     } catch (err) {
@@ -163,8 +186,10 @@ export function startGateway() {
       });
       return res.end();
     }
-    if (url.pathname.startsWith("/auth/v1/")) return proxy(req, res, PORTS.auth, url.pathname.slice("/auth/v1".length) + url.search);
-    if (url.pathname.startsWith("/rest/v1/")) return proxy(req, res, PORTS.postgrest, url.pathname.slice("/rest/v1".length) + url.search);
+    if (url.pathname.startsWith("/auth/v1/"))
+      return proxy(req, res, PORTS.auth, url.pathname.slice("/auth/v1".length) + url.search);
+    if (url.pathname.startsWith("/rest/v1/"))
+      return proxy(req, res, PORTS.postgrest, url.pathname.slice("/rest/v1".length) + url.search);
     if (url.pathname.startsWith("/storage/v1/")) {
       return handleStorage(req, res, url).catch((err) => json(res, 500, { message: String(err.message) }));
     }

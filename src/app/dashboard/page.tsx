@@ -19,7 +19,14 @@ export default async function DashboardPage() {
   const supabase = await createClient();
 
   const [candidate, applications, recommendations, vacancies] = await Promise.all([
-    user.isJobSeeker ? supabase.from("candidate_profiles").select("completeness, is_public, profession_id, district_id").eq("id", user.id).maybeSingle().then((r) => r.data) : null,
+    user.isJobSeeker
+      ? supabase
+          .from("candidate_profiles")
+          .select("completeness, is_public, profession_id, district_id")
+          .eq("id", user.id)
+          .maybeSingle()
+          .then((r) => r.data)
+      : null,
     user.isJobSeeker ? listCandidateApplications(user.id) : [],
     user.isJobSeeker && user.hasCandidateProfile ? matchVacanciesForMe(6) : [],
     user.isEmployer && user.companyId ? listCompanyVacancies(user.companyId) : [],
@@ -31,24 +38,48 @@ export default async function DashboardPage() {
   return (
     <>
       <PageHeader title={`Salom, ${user.firstName || "doʻst"}!`} description="Oʻz hududingizdagi imkoniyatlar shu yerda." />
-      {user.isBlocked ? <Alert tone="danger" className="mb-4">Hisobingiz vaqtincha cheklangan. Qoʻllab-quvvatlash xizmatiga murojaat qiling.</Alert> : null}
+      {user.isBlocked ? (
+        <Alert tone="danger" className="mb-4">
+          Hisobingiz vaqtincha cheklangan. Qoʻllab-quvvatlash xizmatiga murojaat qiling.
+        </Alert>
+      ) : null}
 
       {user.isJobSeeker ? (
         <section className="mb-10 space-y-4">
           {!candidate ? (
-            <Alert tone="info">Profilingiz hali yaratilmagan. <Link href="/dashboard/profile" className="font-medium underline">Profilni toʻldiring</Link> — ish beruvchilar sizni hududingiz boʻyicha topadi.</Alert>
+            <Alert tone="info">
+              Profilingiz hali yaratilmagan.{" "}
+              <Link href="/dashboard/profile" className="font-medium underline">
+                Profilni toʻldiring
+              </Link>{" "}
+              — ish beruvchilar sizni hududingiz boʻyicha topadi.
+            </Alert>
           ) : candidate.completeness < 70 ? (
-            <Alert tone="warning">Profilingiz {candidate.completeness}% toʻldirilgan. Toʻliq profillar ish beruvchilarga koʻproq koʻrsatiladi. <Link href="/dashboard/profile" className="font-medium underline">Toʻldirish</Link></Alert>
+            <Alert tone="warning">
+              Profilingiz {candidate.completeness}% toʻldirilgan. Toʻliq profillar ish beruvchilarga koʻproq koʻrsatiladi.{" "}
+              <Link href="/dashboard/profile" className="font-medium underline">
+                Toʻldirish
+              </Link>
+            </Alert>
           ) : null}
           <div className="grid gap-3 sm:grid-cols-3">
-            <Stat label="Profil" value={`${candidate?.completeness ?? 0}%`} hint={candidate?.is_public ? "Ommaviy" : "Yashirin"} />
+            <Stat
+              label="Profil"
+              value={`${candidate?.completeness ?? 0}%`}
+              hint={candidate?.is_public ? "Ommaviy" : "Yashirin"}
+            />
             <Stat label="Arizalar" value={applications.length} />
-            <Stat label="Suhbatga taklif" value={applications.filter((a) => a.status === "interview" || a.status === "offered").length} />
+            <Stat
+              label="Suhbatga taklif"
+              value={applications.filter((a) => a.status === "interview" || a.status === "offered").length}
+            />
           </div>
           <Card>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">Sizga mos ishlar</h2>
-              <Link href="/jobs" className="text-sm font-medium text-brand-700 hover:underline">Barcha ishlar →</Link>
+              <Link href="/jobs" className="text-brand-700 text-sm font-medium hover:underline">
+                Barcha ishlar →
+              </Link>
             </div>
             {recommendations.length === 0 ? (
               <p className="text-sm text-slate-600">Kasb va hududingizni koʻrsating — mos vakansiyalarni shu yerda koʻrasiz.</p>
@@ -57,11 +88,16 @@ export default async function DashboardPage() {
                 {recommendations.map(({ row, match }) => (
                   <li key={row.vacancy_id} className="flex items-start justify-between gap-3 py-3">
                     <div className="min-w-0">
-                      <Link href={`/vacancy/${row.vacancy_id}`} className="font-medium text-slate-900 hover:text-brand-700">{row.title}</Link>
+                      <Link href={`/vacancy/${row.vacancy_id}`} className="hover:text-brand-700 font-medium text-slate-900">
+                        {row.title}
+                      </Link>
                       <p className="text-sm text-slate-600">
-                        {row.company_name} · {row.district_name ?? "Masofaviy"}{row.distance_km != null ? ` · ${formatDistance(row.distance_km)}` : ""}
+                        {row.company_name} · {row.district_name ?? "Masofaviy"}
+                        {row.distance_km != null ? ` · ${formatDistance(row.distance_km)}` : ""}
                       </p>
-                      <p className="text-sm text-slate-800">{formatSalary(row.vacancy_salary_min, row.vacancy_salary_max, row.salary_type)}</p>
+                      <p className="text-sm text-slate-800">
+                        {formatSalary(row.vacancy_salary_min, row.vacancy_salary_max, row.salary_type)}
+                      </p>
                     </div>
                     <MatchBadge match={match} />
                   </li>
@@ -75,7 +111,9 @@ export default async function DashboardPage() {
               <ul className="divide-y divide-slate-100">
                 {applications.slice(0, 5).map((a) => (
                   <li key={a.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                    <Link href={`/vacancy/${a.vacancy_id}`} className="truncate text-slate-800 hover:text-brand-700">{a.vacancies?.title}</Link>
+                    <Link href={`/vacancy/${a.vacancy_id}`} className="hover:text-brand-700 truncate text-slate-800">
+                      {a.vacancies?.title}
+                    </Link>
                     <Badge tone={STATUS_TONE[a.status]}>{APPLICATION_STATUS_LABELS[a.status]}</Badge>
                   </li>
                 ))}
@@ -88,7 +126,11 @@ export default async function DashboardPage() {
       {user.isEmployer ? (
         <section className="space-y-4">
           {!user.companyId ? (
-            <EmptyState title="Ish beruvchi profilini yarating" description="Jismoniy shaxs sifatida ham vakansiya joylashingiz mumkin." action={<ButtonLink href="/dashboard/company">Boshlash</ButtonLink>} />
+            <EmptyState
+              title="Ish beruvchi profilini yarating"
+              description="Jismoniy shaxs sifatida ham vakansiya joylashingiz mumkin."
+              action={<ButtonLink href="/dashboard/company">Boshlash</ButtonLink>}
+            />
           ) : (
             <>
               <div className="grid gap-3 sm:grid-cols-3">
@@ -99,7 +141,9 @@ export default async function DashboardPage() {
               <Card>
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-slate-900">Vakansiyalarim</h2>
-                  <ButtonLink href="/dashboard/vacancies/new" size="sm">+ Yangi</ButtonLink>
+                  <ButtonLink href="/dashboard/vacancies/new" size="sm">
+                    + Yangi
+                  </ButtonLink>
                 </div>
                 {vacancies.length === 0 ? (
                   <p className="text-sm text-slate-600">Hali vakansiya yoʻq.</p>
@@ -107,8 +151,12 @@ export default async function DashboardPage() {
                   <ul className="divide-y divide-slate-100">
                     {vacancies.slice(0, 6).map((v) => (
                       <li key={v.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                        <Link href={`/dashboard/vacancies/${v.id}`} className="truncate text-slate-800 hover:text-brand-700">{v.title}</Link>
-                        <span className="shrink-0 text-slate-500">{v.applications_count} ariza · {timeAgo(v.created_at)}</span>
+                        <Link href={`/dashboard/vacancies/${v.id}`} className="hover:text-brand-700 truncate text-slate-800">
+                          {v.title}
+                        </Link>
+                        <span className="shrink-0 text-slate-500">
+                          {v.applications_count} ariza · {timeAgo(v.created_at)}
+                        </span>
                       </li>
                     ))}
                   </ul>

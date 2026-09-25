@@ -25,8 +25,15 @@ function Shell({ action, children, resetHref }: { action: string; children: Reac
       <GetForm action={action} className="space-y-4 p-4">
         {children}
         <div className="flex gap-2 pt-2">
-          <Button type="submit" className="flex-1">Qoʻllash</Button>
-          <Link href={resetHref} className="inline-flex h-10 items-center rounded-lg px-3 text-sm text-slate-600 hover:bg-slate-100">Tozalash</Link>
+          <Button type="submit" className="flex-1">
+            Qoʻllash
+          </Button>
+          <Link
+            href={resetHref}
+            className="inline-flex h-10 items-center rounded-lg px-3 text-sm text-slate-600 hover:bg-slate-100"
+          >
+            Tozalash
+          </Link>
         </div>
       </GetForm>
     </MobileCollapsible>
@@ -40,7 +47,9 @@ function RadiusSelect({ value }: { value?: number }) {
       <Select id="f-radius" name="radius" defaultValue={value ?? ""}>
         <option value="">Hudud boʻyicha</option>
         {RADIUS_OPTIONS.map((r) => (
-          <option key={r} value={r}>{r} km</option>
+          <option key={r} value={r}>
+            {r} km
+          </option>
         ))}
       </Select>
     </div>
@@ -68,7 +77,12 @@ export function VacancyFilters({
         <LocationPicker
           regions={regions}
           compact
-          value={{ regionId: search.region, districtId: search.district, settlementId: search.settlement, mahallaId: search.mahalla }}
+          value={{
+            regionId: search.region,
+            districtId: search.district,
+            settlementId: search.settlement,
+            mahallaId: search.mahalla,
+          }}
           names={{ region: "region", district: "district", settlement: "settlement", mahalla: "mahalla" }}
         />
         <RadiusSelect value={search.radius} />
@@ -135,7 +149,12 @@ export function CandidateFilters({
         <LocationPicker
           regions={regions}
           compact
-          value={{ regionId: search.region, districtId: search.district, settlementId: search.settlement, mahallaId: search.mahalla }}
+          value={{
+            regionId: search.region,
+            districtId: search.district,
+            settlementId: search.settlement,
+            mahallaId: search.mahalla,
+          }}
           names={{ region: "region", district: "district", settlement: "settlement", mahalla: "mahalla" }}
         />
         <RadiusSelect value={search.radius} />
@@ -150,7 +169,13 @@ export function CandidateFilters({
         {options(AVAILABILITY_LABELS)
           .filter((o) => o.value !== "not_available")
           .map((o) => (
-            <Checkbox key={o.value} name="availability" value={o.value} defaultChecked={search.availability.includes(o.value)} label={o.label} />
+            <Checkbox
+              key={o.value}
+              name="availability"
+              value={o.value}
+              defaultChecked={search.availability.includes(o.value)}
+              label={o.label}
+            />
           ))}
       </Section>
       <Section title="Ish turi">
@@ -172,7 +197,9 @@ export function CandidateFilters({
           <Select id="c-rating" name="rating" defaultValue={search.rating ?? ""}>
             <option value="">Muhim emas</option>
             {[3, 4, 5].map((r) => (
-              <option key={r} value={r}>{r}★ va yuqori</option>
+              <option key={r} value={r}>
+                {r}★ va yuqori
+              </option>
             ))}
           </Select>
         </div>

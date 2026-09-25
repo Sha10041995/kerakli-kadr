@@ -1,7 +1,11 @@
 import type { VacancyInput } from "@/validations/vacancy";
 import type { VacancyDetail } from "@/features/vacancies/queries";
 
-export function emptyVacancy(location: { regionId?: number | null; districtId?: number | null; settlementId?: number | null }): VacancyInput {
+export function emptyVacancy(location: {
+  regionId?: number | null;
+  districtId?: number | null;
+  settlementId?: number | null;
+}): VacancyInput {
   return {
     title: "",
     description: "",

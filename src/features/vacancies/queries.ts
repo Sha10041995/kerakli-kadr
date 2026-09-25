@@ -7,7 +7,9 @@ import type { FunctionReturns } from "@/types/database";
 
 export type VacancySearchRow = FunctionReturns<"search_vacancies">[number];
 
-export async function searchVacancies(search: VacancySearch): Promise<{ rows: VacancySearchRow[]; total: number; error?: string }> {
+export async function searchVacancies(
+  search: VacancySearch,
+): Promise<{ rows: VacancySearchRow[]; total: number; error?: string }> {
   if (!isSupabaseConfigured()) return { rows: [], total: 0 };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("search_vacancies", vacancyRpcArgs(search));
@@ -46,7 +48,9 @@ export async function listCompanyVacancies(companyId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("vacancies")
-    .select("id, title, status, published_at, expires_at, applications_count, views_count, urgent, promoted_until, is_featured, rejection_reason, created_at, districts(name_uz)")
+    .select(
+      "id, title, status, published_at, expires_at, applications_count, views_count, urgent, promoted_until, is_featured, rejection_reason, created_at, districts(name_uz)",
+    )
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
   return data ?? [];

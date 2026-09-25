@@ -19,12 +19,24 @@ export async function matchCandidatesForVacancy(vacancyId: string, limit = 20) {
   return data
     .map((r) => {
       const features: MatchFeatures = {
-        sameProfession: r.same_profession, sameCategory: r.same_category, locationTier: r.location_tier,
-        distanceKm: r.distance_km, experienceYears: r.experience_years, requiredExperience: r.required_experience,
-        availability: r.availability, expectedSalaryMin: r.expected_salary_min, expectedSalaryMax: r.expected_salary_max,
-        vacancySalaryMin: r.vacancy_salary_min, vacancySalaryMax: r.vacancy_salary_max, ratingAvg: r.rating_avg,
-        ratingCount: r.rating_count, completeness: r.completeness, skillsMatched: r.skills_matched,
-        skillsRequired: r.skills_required, remoteAllowed: r.remote_allowed, remoteOk: r.remote_ok,
+        sameProfession: r.same_profession,
+        sameCategory: r.same_category,
+        locationTier: r.location_tier,
+        distanceKm: r.distance_km,
+        experienceYears: r.experience_years,
+        requiredExperience: r.required_experience,
+        availability: r.availability,
+        expectedSalaryMin: r.expected_salary_min,
+        expectedSalaryMax: r.expected_salary_max,
+        vacancySalaryMin: r.vacancy_salary_min,
+        vacancySalaryMax: r.vacancy_salary_max,
+        ratingAvg: r.rating_avg,
+        ratingCount: r.rating_count,
+        completeness: r.completeness,
+        skillsMatched: r.skills_matched,
+        skillsRequired: r.skills_required,
+        remoteAllowed: r.remote_allowed,
+        remoteOk: r.remote_ok,
       };
       return { row: r, match: computeMatch(features, weights) };
     })
@@ -43,12 +55,24 @@ export async function matchVacanciesForMe(limit = 6) {
   return data
     .map((r) => {
       const features: MatchFeatures = {
-        sameProfession: r.same_profession, sameCategory: r.same_category, locationTier: r.location_tier,
-        distanceKm: r.distance_km, experienceYears: r.experience_years, requiredExperience: r.required_experience,
-        availability: r.availability, expectedSalaryMin: r.expected_salary_min, expectedSalaryMax: r.expected_salary_max,
-        vacancySalaryMin: r.vacancy_salary_min, vacancySalaryMax: r.vacancy_salary_max, ratingAvg: r.company_rating,
-        ratingCount: r.company_rating ? 1 : 0, completeness: r.completeness, skillsMatched: r.skills_matched,
-        skillsRequired: r.skills_required, remoteAllowed: r.remote_allowed, remoteOk: r.remote_ok,
+        sameProfession: r.same_profession,
+        sameCategory: r.same_category,
+        locationTier: r.location_tier,
+        distanceKm: r.distance_km,
+        experienceYears: r.experience_years,
+        requiredExperience: r.required_experience,
+        availability: r.availability,
+        expectedSalaryMin: r.expected_salary_min,
+        expectedSalaryMax: r.expected_salary_max,
+        vacancySalaryMin: r.vacancy_salary_min,
+        vacancySalaryMax: r.vacancy_salary_max,
+        ratingAvg: r.company_rating,
+        ratingCount: r.company_rating ? 1 : 0,
+        completeness: r.completeness,
+        skillsMatched: r.skills_matched,
+        skillsRequired: r.skills_required,
+        remoteAllowed: r.remote_allowed,
+        remoteOk: r.remote_ok,
       };
       return { row: r, match: computeMatch(features, weights) };
     })

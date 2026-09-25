@@ -27,10 +27,12 @@ function Attachment({ path, name }: { path: string; name: string | null }) {
       type="button"
       disabled={pending}
       className="mt-1 text-xs underline"
-      onClick={() => start(async () => {
-        const res = await getAttachmentUrlAction(path);
-        if (res.ok && res.data) window.open(res.data.url, "_blank", "noopener,noreferrer");
-      })}
+      onClick={() =>
+        start(async () => {
+          const res = await getAttachmentUrlAction(path);
+          if (res.ok && res.data) window.open(res.data.url, "_blank", "noopener,noreferrer");
+        })
+      }
     >
       📎 {name ?? "Fayl"}
     </button>
@@ -103,10 +105,17 @@ export function ChatThread({ conversationId, meId, initial }: { conversationId: 
           const mine = m.sender_id === meId;
           return (
             <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
-              <div className={cn("max-w-[80%] rounded-2xl px-3 py-2 text-sm", mine ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-900")}>
+              <div
+                className={cn(
+                  "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
+                  mine ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-900",
+                )}
+              >
                 {m.body ? <p className="break-words whitespace-pre-wrap">{m.body}</p> : null}
                 {m.attachment_path ? <Attachment path={m.attachment_path} name={m.attachment_name} /> : null}
-                {m.is_flagged && !mine ? <p className="mt-1 text-[11px] text-amber-700">⚠ Havolali xabar — ehtiyot boʻling</p> : null}
+                {m.is_flagged && !mine ? (
+                  <p className="mt-1 text-[11px] text-amber-700">⚠ Havolali xabar — ehtiyot boʻling</p>
+                ) : null}
                 <p className={cn("mt-0.5 text-[10px]", mine ? "text-brand-100" : "text-slate-400")}>
                   {new Date(m.created_at).toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" })}
                 </p>
@@ -124,7 +133,11 @@ export function ChatThread({ conversationId, meId, initial }: { conversationId: 
         }}
       >
         {warning ? <p className="mb-2 rounded bg-amber-50 px-2 py-1 text-xs text-amber-800">{warning}</p> : null}
-        {error ? <p role="alert" className="mb-2 text-xs text-red-600">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="mb-2 text-xs text-red-600">
+            {error}
+          </p>
+        ) : null}
         <div className="flex items-end gap-2">
           <Textarea
             value={body}
@@ -141,11 +154,16 @@ export function ChatThread({ conversationId, meId, initial }: { conversationId: 
             aria-label="Xabar"
             className="min-h-10 flex-1 resize-none"
           />
-          <label className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" title="Fayl biriktirish (rasm yoki PDF, 10 MB)">
+          <label
+            className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+            title="Fayl biriktirish (rasm yoki PDF, 10 MB)"
+          >
             📎
             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="sr-only" />
           </label>
-          <Button type="submit" disabled={pending}>{pending ? "…" : "Yuborish"}</Button>
+          <Button type="submit" disabled={pending}>
+            {pending ? "…" : "Yuborish"}
+          </Button>
         </div>
       </form>
     </div>

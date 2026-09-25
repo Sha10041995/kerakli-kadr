@@ -27,17 +27,38 @@ export default async function AdminDashboard() {
         <Stat label="Daromad" value={`${n("revenue_uzs")} soʻm`} hint={`30 kun: ${n("revenue_30d_uzs")}`} />
         <Stat label="Obunalar" value={n("active_subscriptions")} />
         <Stat label="Qidiruvlar (30 kun)" value={n("searches_30d")} />
-        <Stat label="Konversiya" value={`${Number(s.applications ?? 0) ? Math.round((Number(s.hires ?? 0) / Number(s.applications)) * 100) : 0}%`} hint="ariza → ishga olish" />
+        <Stat
+          label="Konversiya"
+          value={`${Number(s.applications ?? 0) ? Math.round((Number(s.hires ?? 0) / Number(s.applications)) * 100) : 0}%`}
+          hint="ariza → ishga olish"
+        />
       </div>
       <div className="mt-6 grid gap-3 md:grid-cols-3">
-        <Link href="/admin/vacancies"><Card className="hover:border-brand-300"><p className="text-sm text-slate-500">Tekshiruvni kutayotgan vakansiyalar</p><p className="text-2xl font-bold">{n("vacancies_pending")}</p></Card></Link>
-        <Link href="/admin/reports"><Card className="hover:border-brand-300"><p className="text-sm text-slate-500">Ochiq shikoyatlar</p><p className="text-2xl font-bold">{n("open_reports")}</p></Card></Link>
-        <Link href="/admin/verification"><Card className="hover:border-brand-300"><p className="text-sm text-slate-500">Tasdiqlash soʻrovlari</p><p className="text-2xl font-bold">{n("pending_verifications")}</p></Card></Link>
+        <Link href="/admin/vacancies">
+          <Card className="hover:border-brand-300">
+            <p className="text-sm text-slate-500">Tekshiruvni kutayotgan vakansiyalar</p>
+            <p className="text-2xl font-bold">{n("vacancies_pending")}</p>
+          </Card>
+        </Link>
+        <Link href="/admin/reports">
+          <Card className="hover:border-brand-300">
+            <p className="text-sm text-slate-500">Ochiq shikoyatlar</p>
+            <p className="text-2xl font-bold">{n("open_reports")}</p>
+          </Card>
+        </Link>
+        <Link href="/admin/verification">
+          <Card className="hover:border-brand-300">
+            <p className="text-sm text-slate-500">Tasdiqlash soʻrovlari</p>
+            <p className="text-2xl font-bold">{n("pending_verifications")}</p>
+          </Card>
+        </Link>
       </div>
       <Card className="mt-6">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-semibold text-slate-900">Talab yuqori: tuman × kasb</h2>
-          <Link href="/admin/analytics" className="text-sm text-brand-700 hover:underline">Batafsil →</Link>
+          <Link href="/admin/analytics" className="text-brand-700 text-sm hover:underline">
+            Batafsil →
+          </Link>
         </div>
         <DemandTable rows={demand ?? []} />
       </Card>

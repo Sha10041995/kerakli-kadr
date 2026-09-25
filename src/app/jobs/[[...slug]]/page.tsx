@@ -40,9 +40,22 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
     getRegions(),
     getCatalog(),
     getCurrentUser(),
-    getLocationLabel({ regionId: search.region, districtId: search.district, settlementId: search.settlement, mahallaId: search.mahalla }),
+    getLocationLabel({
+      regionId: search.region,
+      districtId: search.district,
+      settlementId: search.settlement,
+      mahallaId: search.mahalla,
+    }),
   ]);
-  logSearch({ kind: "vacancies", userId: user?.id, query: search.q, professionId: search.profession, regionId: search.region, districtId: search.district, results: total });
+  logSearch({
+    kind: "vacancies",
+    userId: user?.id,
+    query: search.q,
+    professionId: search.profession,
+    regionId: search.region,
+    districtId: search.district,
+    results: total,
+  });
 
   const basePath = seoPath("jobs", seo);
   const profession = catalog.flatMap((c) => c.professions).find((p) => p.id === search.profession);
@@ -57,12 +70,26 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
             {search.radius ? ` · ${search.radius} km radius` : ""} — <strong>{formatNumber(total)}</strong> ta vakansiya topildi
           </>
         }
-        actions={user ? <SaveSearchButton kind="vacancies" search={search} label={[profession?.name, locationLabel].filter(Boolean).join(" · ") || "Vakansiyalar"} /> : null}
+        actions={
+          user ? (
+            <SaveSearchButton
+              kind="vacancies"
+              search={search}
+              label={[profession?.name, locationLabel].filter(Boolean).join(" · ") || "Vakansiyalar"}
+            />
+          ) : null
+        }
       />
       {!isSupabaseConfigured() ? (
-        <Alert tone="warning" className="mb-4">Maʼlumotlar bazasi ulanmagan. <code>.env.local</code> faylida Supabase sozlamalarini kiriting.</Alert>
+        <Alert tone="warning" className="mb-4">
+          Maʼlumotlar bazasi ulanmagan. <code>.env.local</code> faylida Supabase sozlamalarini kiriting.
+        </Alert>
       ) : null}
-      {error ? <Alert tone="danger" className="mb-4">Qidiruvda xatolik yuz berdi. Iltimos, qayta urinib koʻring.</Alert> : null}
+      {error ? (
+        <Alert tone="danger" className="mb-4">
+          Qidiruvda xatolik yuz berdi. Iltimos, qayta urinib koʻring.
+        </Alert>
+      ) : null}
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
         <aside>
           <VacancyFilters search={search} regions={regions} catalog={catalog} />
@@ -72,12 +99,22 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
             <EmptyState
               title="Mos vakansiya topilmadi"
               description="Radiusni kengaytiring yoki boshqa tuman/kasbni tanlang. Qidiruvni saqlasangiz, yangi vakansiya chiqqanda xabar beramiz."
-              action={<Link href="/jobs" className="text-sm font-medium text-brand-700 hover:underline">Barcha vakansiyalar</Link>}
+              action={
+                <Link href="/jobs" className="text-brand-700 text-sm font-medium hover:underline">
+                  Barcha vakansiyalar
+                </Link>
+              }
             />
           ) : (
             rows.map((v) => <VacancyCard key={v.id} v={v} />)
           )}
-          <Pagination page={search.page} pages={totalPages(total)} hrefFor={(p) => `${basePath}${searchToQuery(search, { page: p, region: seo.region ? undefined : search.region, district: seo.district ? undefined : search.district, profession: seo.profession ? undefined : search.profession })}`} />
+          <Pagination
+            page={search.page}
+            pages={totalPages(total)}
+            hrefFor={(p) =>
+              `${basePath}${searchToQuery(search, { page: p, region: seo.region ? undefined : search.region, district: seo.district ? undefined : search.district, profession: seo.profession ? undefined : search.profession })}`
+            }
+          />
         </section>
       </div>
     </Container>

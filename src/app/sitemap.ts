@@ -37,7 +37,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push({ url: absoluteUrl(`/candidates/${p.slug}`), changeFrequency: "daily", priority: 0.5 });
   }
   for (const v of vacancies ?? []) {
-    entries.push({ url: absoluteUrl(`/vacancy/${v.id}`), lastModified: new Date(v.updated_at), changeFrequency: "weekly", priority: 0.7 });
+    entries.push({
+      url: absoluteUrl(`/vacancy/${v.id}`),
+      lastModified: new Date(v.updated_at),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    });
   }
   return entries;
 }

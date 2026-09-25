@@ -3,13 +3,24 @@ import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 
 export type ProfessionOption = { id: number; slug: string; name: string; categoryId: number };
-export type CategoryWithProfessions = { id: number; slug: string; name: string; icon: string | null; professions: ProfessionOption[] };
+export type CategoryWithProfessions = {
+  id: number;
+  slug: string;
+  name: string;
+  icon: string | null;
+  professions: ProfessionOption[];
+};
 
 export const getCatalog = cache(async (): Promise<CategoryWithProfessions[]> => {
   const db = createPublicClient();
   if (!db) return [];
   const [cats, profs] = await Promise.all([
-    db.from("categories").select("id, slug, name_uz, icon, sort_order").eq("is_active", true).is("parent_id", null).order("sort_order"),
+    db
+      .from("categories")
+      .select("id, slug, name_uz, icon, sort_order")
+      .eq("is_active", true)
+      .is("parent_id", null)
+      .order("sort_order"),
     db.from("professions").select("id, slug, name_uz, category_id, sort_order").eq("is_active", true).order("sort_order"),
   ]);
   return (cats.data ?? []).map((c) => ({
@@ -54,7 +65,11 @@ export async function getRegionStats() {
 export async function getTalentSummary(regionId?: number | null, districtId?: number | null, limit = 8) {
   const db = createPublicClient(600);
   if (!db) return [];
-  const { data } = await db.rpc("talent_summary", { p_region_id: regionId ?? null, p_district_id: districtId ?? null, p_limit: limit });
+  const { data } = await db.rpc("talent_summary", {
+    p_region_id: regionId ?? null,
+    p_district_id: districtId ?? null,
+    p_limit: limit,
+  });
   return data ?? [];
 }
 

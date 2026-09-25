@@ -14,7 +14,13 @@ async function context() {
   const userId = data?.claims?.sub ?? null;
   let companyId: string | null = null;
   if (userId) {
-    const { data: m } = await supabase.from("company_members").select("company_id").eq("user_id", userId).order("created_at").limit(1).maybeSingle();
+    const { data: m } = await supabase
+      .from("company_members")
+      .select("company_id")
+      .eq("user_id", userId)
+      .order("created_at")
+      .limit(1)
+      .maybeSingle();
     companyId = m?.company_id ?? null;
   }
   return { supabase, userId, companyId };
@@ -65,8 +71,7 @@ export async function saveVacancyAction(input: unknown, id?: string): Promise<Ac
   if (id) {
     const { data: current } = await supabase.from("vacancies").select("status").eq("id", id).maybeSingle();
     if (!current) return fail("Vakansiya topilmadi");
-    const nextStatus =
-      d.publish && ["draft", "closed", "expired"].includes(current.status) ? "pending_review" : current.status;
+    const nextStatus = d.publish && ["draft", "closed", "expired"].includes(current.status) ? "pending_review" : current.status;
     const { data, error } = await supabase
       .from("vacancies")
       .update({ ...values, status: nextStatus })
@@ -98,12 +103,17 @@ export async function saveVacancyAction(input: unknown, id?: string): Promise<Ac
   revalidatePath("/dashboard/vacancies");
   revalidatePath(`/vacancy/${vacancyId}`);
   const message =
-    status === "active" ? "Vakansiya eʼlon qilindi" : status === "pending_review" ? "Vakansiya moderatsiyaga yuborildi" : "Qoralama saqlandi";
+    status === "active"
+      ? "Vakansiya eʼlon qilindi"
+      : status === "pending_review"
+        ? "Vakansiya moderatsiyaga yuborildi"
+        : "Qoralama saqlandi";
   return { ok: true, data: { id: vacancyId!, status }, message };
 }
 
 export async function setVacancyStatusAction(id: string, status: "closed" | "pending_review" | "draft"): Promise<ActionResult> {
-  if (!uuidSchema.safeParse(id).success || !["closed", "pending_review", "draft"].includes(status)) return fail("Notoʻgʻri soʻrov");
+  if (!uuidSchema.safeParse(id).success || !["closed", "pending_review", "draft"].includes(status))
+    return fail("Notoʻgʻri soʻrov");
   const { supabase } = await context();
   const { error, count } = await supabase.from("vacancies").update({ status }, { count: "exact" }).eq("id", id);
   if (error) return fail(toUserMessage(error));

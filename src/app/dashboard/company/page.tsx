@@ -14,7 +14,12 @@ import type { CompanyInput } from "@/validations/company";
 export const metadata: Metadata = { title: "Kompaniya", robots: { index: false } };
 
 const VERIFICATION_TONE = { verified: "success", pending: "warning", rejected: "danger", unverified: "neutral" } as const;
-const VERIFICATION_LABEL = { verified: "Tasdiqlangan", pending: "Tekshiruvda", rejected: "Rad etilgan", unverified: "Tasdiqlanmagan" } as const;
+const VERIFICATION_LABEL = {
+  verified: "Tasdiqlangan",
+  pending: "Tekshiruvda",
+  rejected: "Rad etilgan",
+  unverified: "Tasdiqlanmagan",
+} as const;
 
 export default async function CompanyPage(props: PageProps<"/dashboard/company">) {
   const user = await requireEmployer("/dashboard/company");
@@ -22,7 +27,9 @@ export default async function CompanyPage(props: PageProps<"/dashboard/company">
   const supabase = await createClient();
   const [regions, { data: company }] = await Promise.all([
     getRegions(),
-    user.companyId ? supabase.from("companies").select("*").eq("id", user.companyId).maybeSingle() : Promise.resolve({ data: null }),
+    user.companyId
+      ? supabase.from("companies").select("*").eq("id", user.companyId).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   const defaults: CompanyInput = {
@@ -44,10 +51,26 @@ export default async function CompanyPage(props: PageProps<"/dashboard/company">
     <>
       <PageHeader
         title={company ? company.name : "Ish beruvchi profili"}
-        description={company ? <Badge tone={VERIFICATION_TONE[company.verification_status]}>{VERIFICATION_LABEL[company.verification_status]}</Badge> : "Vakansiya joylash uchun avval ish beruvchi maʼlumotlarini kiriting."}
-        actions={company ? <Link href={`/company/${company.slug}`} className="text-sm font-medium text-brand-700 hover:underline">Ommaviy sahifa →</Link> : null}
+        description={
+          company ? (
+            <Badge tone={VERIFICATION_TONE[company.verification_status]}>{VERIFICATION_LABEL[company.verification_status]}</Badge>
+          ) : (
+            "Vakansiya joylash uchun avval ish beruvchi maʼlumotlarini kiriting."
+          )
+        }
+        actions={
+          company ? (
+            <Link href={`/company/${company.slug}`} className="text-brand-700 text-sm font-medium hover:underline">
+              Ommaviy sahifa →
+            </Link>
+          ) : null
+        }
       />
-      {sp.welcome ? <Alert tone="success" className="mb-4">Xush kelibsiz! Jismoniy shaxs sifatida ham vakansiya joylashingiz mumkin.</Alert> : null}
+      {sp.welcome ? (
+        <Alert tone="success" className="mb-4">
+          Xush kelibsiz! Jismoniy shaxs sifatida ham vakansiya joylashingiz mumkin.
+        </Alert>
+      ) : null}
       {company ? (
         <Card className="mb-6 flex flex-wrap items-center gap-4">
           <Avatar src={company.logo_url} first={company.name} size={64} className="rounded-xl" />
@@ -57,10 +80,14 @@ export default async function CompanyPage(props: PageProps<"/dashboard/company">
               <Label htmlFor="logo">Logo (2 MB gacha)</Label>
               <Input id="logo" name="file" type="file" accept="image/jpeg,image/png,image/webp" required className="py-1.5" />
             </div>
-            <Button type="submit" variant="outline">Yuklash</Button>
+            <Button type="submit" variant="outline">
+              Yuklash
+            </Button>
           </ActionForm>
           {company.verification_status !== "verified" ? (
-            <Link href="/dashboard/verification" className="ml-auto text-sm font-medium text-brand-700 hover:underline">Kompaniyani tasdiqlash →</Link>
+            <Link href="/dashboard/verification" className="text-brand-700 ml-auto text-sm font-medium hover:underline">
+              Kompaniyani tasdiqlash →
+            </Link>
           ) : null}
         </Card>
       ) : null}

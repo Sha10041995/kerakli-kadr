@@ -33,6 +33,12 @@ export function candidateCanWithdraw(status: ApplicationStatus): boolean {
 }
 
 export const STATUS_TONE: Record<ApplicationStatus, "neutral" | "info" | "success" | "warning" | "danger"> = {
-  applied: "neutral", viewed: "info", shortlisted: "info", interview: "warning",
-  offered: "warning", hired: "success", rejected: "danger", withdrawn: "neutral",
+  applied: "neutral",
+  viewed: "info",
+  shortlisted: "info",
+  interview: "warning",
+  offered: "warning",
+  hired: "success",
+  rejected: "danger",
+  withdrawn: "neutral",
 };

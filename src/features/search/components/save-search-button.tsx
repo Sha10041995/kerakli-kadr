@@ -8,7 +8,15 @@ import { saveSearchAction } from "@/features/search/actions";
 type Props = {
   kind: "vacancies" | "candidates";
   label: string;
-  search: { q?: string; profession?: number; category?: number; region?: number; district?: number; settlement?: number; radius?: number };
+  search: {
+    q?: string;
+    profession?: number;
+    category?: number;
+    region?: number;
+    district?: number;
+    settlement?: number;
+    radius?: number;
+  };
 };
 
 export function SaveSearchButton({ kind, label, search }: Props) {
@@ -39,7 +47,11 @@ export function SaveSearchButton({ kind, label, search }: Props) {
       >
         <BellIcon size={16} /> {msg?.ok ? "Saqlandi" : "Qidiruvni saqlash"}
       </Button>
-      {msg ? <p role="status" className={msg.ok ? "text-xs text-emerald-700" : "text-xs text-red-600"}>{msg.text}</p> : null}
+      {msg ? (
+        <p role="status" className={msg.ok ? "text-xs text-emerald-700" : "text-xs text-red-600"}>
+          {msg.text}
+        </p>
+      ) : null}
     </div>
   );
 }

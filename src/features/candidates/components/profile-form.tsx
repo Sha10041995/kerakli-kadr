@@ -9,9 +9,7 @@ import { Checkbox, Field, FieldError, Input, Select, Textarea } from "@/componen
 import { Alert, Card } from "@/components/ui/misc";
 import { LocationPicker } from "@/features/locations/components/location-picker";
 import { saveCandidateProfileAction } from "@/features/candidates/actions";
-import {
-  AVAILABILITY_LABELS, EDUCATION_LABELS, EMPLOYMENT_TYPE_LABELS, SALARY_TYPE_LABELS, options,
-} from "@/lib/i18n/uz";
+import { AVAILABILITY_LABELS, EDUCATION_LABELS, EMPLOYMENT_TYPE_LABELS, SALARY_TYPE_LABELS, options } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 import { candidateProfileSchema, type CandidateProfileData, type CandidateProfileInput } from "@/validations/candidate";
 
@@ -75,7 +73,12 @@ export function CandidateProfileForm({ defaults, regions, catalog, skills, profe
           <Field label="Familiya" htmlFor="lastName" error={errors.lastName?.message}>
             <Input id="lastName" {...register("lastName")} />
           </Field>
-          <Field label="Telefon" htmlFor="phone" error={errors.phone?.message} hint="Faqat siz ariza yuborgan ish beruvchiga koʻrinadi">
+          <Field
+            label="Telefon"
+            htmlFor="phone"
+            error={errors.phone?.message}
+            hint="Faqat siz ariza yuborgan ish beruvchiga koʻrinadi"
+          >
             <Input id="phone" type="tel" placeholder="+998 90 123 45 67" {...register("phone")} />
           </Field>
           <Field label="Tugʻilgan yil (ixtiyoriy)" htmlFor="birthYear" error={errors.birthYear?.message}>
@@ -93,7 +96,9 @@ export function CandidateProfileForm({ defaults, regions, catalog, skills, profe
               {catalog.map((c) => (
                 <optgroup key={c.id} label={c.name}>
                   {c.professions.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
                   ))}
                 </optgroup>
               ))}
@@ -102,7 +107,13 @@ export function CandidateProfileForm({ defaults, regions, catalog, skills, profe
           <Field label="Tajriba (yil)" htmlFor="experienceYears" error={errors.experienceYears?.message}>
             <Input id="experienceYears" type="number" step="0.5" min={0} max={70} {...register("experienceYears", num)} />
           </Field>
-          <Field label="Sarlavha" htmlFor="headline" error={errors.headline?.message} className="sm:col-span-2" hint="Masalan: “Tajribali elektrik, 8 yil”">
+          <Field
+            label="Sarlavha"
+            htmlFor="headline"
+            error={errors.headline?.message}
+            className="sm:col-span-2"
+            hint="Masalan: “Tajribali elektrik, 8 yil”"
+          >
             <Input id="headline" maxLength={120} {...register("headline")} />
           </Field>
           <Field label="Oʻzim haqimda" htmlFor="about" error={errors.about?.message} className="sm:col-span-2">
@@ -112,21 +123,31 @@ export function CandidateProfileForm({ defaults, regions, catalog, skills, profe
             <Select id="educationLevel" {...register("educationLevel", { setValueAs: (v) => (v === "" ? null : v) })}>
               <option value="">Koʻrsatilmagan</option>
               {options(EDUCATION_LABELS).map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
               ))}
             </Select>
           </Field>
           <Field label="Mavjudlik" htmlFor="availability" error={errors.availability?.message}>
             <Select id="availability" {...register("availability")}>
               {options(AVAILABILITY_LABELS).map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
               ))}
             </Select>
           </Field>
         </div>
         <div>
           <p className="mb-2 text-sm font-medium text-slate-700">Koʻnikmalar ({selectedSkills?.length ?? 0})</p>
-          <Input value={skillFilter} onChange={(e) => setSkillFilter(e.target.value)} placeholder="Koʻnikmani qidirish…" className="mb-2" aria-label="Koʻnikma qidirish" />
+          <Input
+            value={skillFilter}
+            onChange={(e) => setSkillFilter(e.target.value)}
+            placeholder="Koʻnikmani qidirish…"
+            className="mb-2"
+            aria-label="Koʻnikma qidirish"
+          />
           <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto">
             {orderedSkills.map((s) => {
               const on = selectedSkills?.includes(s.id);
@@ -136,7 +157,10 @@ export function CandidateProfileForm({ defaults, regions, catalog, skills, profe
                   key={s.id}
                   aria-pressed={on}
                   onClick={() => toggleSkill(s.id)}
-                  className={cn("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 text-slate-700 hover:border-brand-400")}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs font-medium",
+                    on ? "border-brand-600 bg-brand-600 text-white" : "hover:border-brand-400 border-slate-300 text-slate-700",
+                  )}
                 >
                   {s.name}
                 </button>
@@ -149,14 +173,21 @@ export function CandidateProfileForm({ defaults, regions, catalog, skills, profe
 
       <Card className="space-y-4">
         <h2 className="text-lg font-semibold text-slate-900">Hudud</h2>
-        <p className="text-sm text-slate-600">Aniq uy manzilingiz soʻralmaydi va koʻrsatilmaydi. Profilda faqat tuman va taxminiy masofa chiqadi.</p>
+        <p className="text-sm text-slate-600">
+          Aniq uy manzilingiz soʻralmaydi va koʻrsatilmaydi. Profilda faqat tuman va taxminiy masofa chiqadi.
+        </p>
         <Controller
           control={control}
           name="regionId"
           render={() => (
             <LocationPicker
               regions={regions}
-              value={{ regionId: defaults.regionId, districtId: defaults.districtId, settlementId: defaults.settlementId, mahallaId: defaults.mahallaId }}
+              value={{
+                regionId: defaults.regionId,
+                districtId: defaults.districtId,
+                settlementId: defaults.settlementId,
+                mahallaId: defaults.mahallaId,
+              }}
               errors={{ regionId: errors.regionId?.message }}
               onChange={(v) => {
                 setValue("regionId", v.regionId, { shouldDirty: true, shouldValidate: formState.isSubmitted });
@@ -187,7 +218,9 @@ export function CandidateProfileForm({ defaults, regions, catalog, skills, profe
           <Field label="Maosh turi" htmlFor="salaryType" error={errors.salaryType?.message}>
             <Select id="salaryType" {...register("salaryType")}>
               {options(SALARY_TYPE_LABELS).map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
               ))}
             </Select>
           </Field>

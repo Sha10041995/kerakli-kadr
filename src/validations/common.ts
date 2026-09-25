@@ -1,0 +1,59 @@
+import { z } from "zod";
+
+export const idSchema = z.number().int().positive();
+export const optionalId = z.number().int().positive().nullable().optional();
+export const uuidSchema = z.uuid({ error: "Notoʻgʻri identifikator" });
+
+/** +998 90 123 45 67 → +998901234567 */
+export function normalizePhone(value: string): string {
+  const digits = value.replace(/[^\d+]/g, "");
+  if (/^\d{9}$/.test(digits)) return `+998${digits}`;
+  if (/^998\d{9}$/.test(digits)) return `+${digits}`;
+  return digits;
+}
+
+export const phoneSchema = z
+  .string()
+  .trim()
+  .transform(normalizePhone)
+  .pipe(z.string().regex(/^\+998\d{9}$/, { error: "Telefon raqam +998 XX XXX XX XX formatida boʻlsin" }));
+
+export const optionalPhone = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v) => (v ? normalizePhone(v) : undefined))
+  .pipe(z.string().regex(/^\+998\d{9}$/, { error: "Telefon raqam +998 XX XXX XX XX formatida boʻlsin" }).optional());
+
+export const moneySchema = z.number().int().min(0).max(10_000_000_000).nullable().optional();
+
+export const locationFields = {
+  regionId: optionalId,
+  districtId: optionalId,
+  settlementId: optionalId,
+  mahallaId: optionalId,
+  lat: z.number().min(37).max(45.7).nullable().optional(),
+  lng: z.number().min(55.9).max(73.2).nullable().optional(),
+};
+
+export const safeUrl = z
+  .string()
+  .trim()
+  .max(500)
+  .refine((v) => /^https?:\/\/[^\s]+$/i.test(v), { error: "Havola http:// yoki https:// bilan boshlansin" });
+
+/** Plain text field: trims and strips control characters (React escapes HTML on render). */
+export const text = (max: number) =>
+  z
+    .string()
+    .transform((v) => v.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim())
+    .pipe(z.string().max(max, { error: `Koʻpi bilan ${max} ta belgi` }));
+
+export function fieldErrors(error: z.ZodError): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const issue of error.issues) {
+    const key = issue.path.join(".") || "_form";
+    (out[key] ??= []).push(issue.message);
+  }
+  return out;
+}

@@ -1,0 +1,68 @@
+import type { VacancyInput } from "@/validations/vacancy";
+import type { VacancyDetail } from "@/features/vacancies/queries";
+
+export function emptyVacancy(location: { regionId?: number | null; districtId?: number | null; settlementId?: number | null }): VacancyInput {
+  return {
+    title: "",
+    description: "",
+    professionId: undefined as unknown as number,
+    categoryId: null,
+    experienceMinYears: 0,
+    educationLevel: null,
+    salaryMin: null,
+    salaryMax: null,
+    salaryCurrency: "UZS",
+    salaryType: "monthly",
+    employmentType: "full_time",
+    workSchedule: "full_day",
+    positionsCount: 1,
+    addressText: "",
+    remoteAllowed: false,
+    transportProvided: false,
+    accommodationProvided: false,
+    mealProvided: false,
+    urgent: false,
+    applicationDeadline: "",
+    skillIds: [],
+    publish: true,
+    regionId: location.regionId ?? null,
+    districtId: location.districtId ?? null,
+    settlementId: location.settlementId ?? null,
+    mahallaId: null,
+    lat: null,
+    lng: null,
+  };
+}
+
+export function vacancyToInput(v: VacancyDetail): VacancyInput {
+  return {
+    title: v.title,
+    description: v.description,
+    professionId: v.profession_id ?? (undefined as unknown as number),
+    categoryId: v.category_id,
+    experienceMinYears: Number(v.experience_min_years),
+    educationLevel: v.education_level,
+    salaryMin: v.salary_min,
+    salaryMax: v.salary_max,
+    salaryCurrency: v.salary_currency === "USD" ? "USD" : "UZS",
+    salaryType: v.salary_type,
+    employmentType: v.employment_type,
+    workSchedule: v.work_schedule,
+    positionsCount: v.positions_count,
+    addressText: v.address_text ?? "",
+    remoteAllowed: v.remote_allowed,
+    transportProvided: v.transport_provided,
+    accommodationProvided: v.accommodation_provided,
+    mealProvided: v.meal_provided,
+    urgent: v.urgent,
+    applicationDeadline: v.application_deadline ?? "",
+    skillIds: (v.vacancy_skills ?? []).map((s) => s.skills?.id).filter((id): id is number => typeof id === "number"),
+    publish: true,
+    regionId: v.region_id,
+    districtId: v.district_id,
+    settlementId: v.settlement_id,
+    mahallaId: v.mahalla_id,
+    lat: v.lat,
+    lng: v.lng,
+  };
+}

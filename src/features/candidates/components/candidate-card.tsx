@@ -1,0 +1,61 @@
+import Link from "next/link";
+import { Avatar, Badge, Card } from "@/components/ui/misc";
+import { buttonClass } from "@/components/ui/button";
+import { PinIcon, ShieldIcon, StarIcon } from "@/components/ui/icons";
+import { AVAILABILITY_LABELS } from "@/lib/i18n/uz";
+import { displayName, formatDistance, formatSalary } from "@/lib/utils";
+import type { CandidateSearchRow } from "@/features/candidates/queries";
+
+export function CandidateCard({ c }: { c: CandidateSearchRow }) {
+  const distance = formatDistance(c.distance_km);
+  const place = [c.settlement_name, c.district_name].filter(Boolean).join(", ") || c.region_name;
+  return (
+    <Card className={c.is_premium ? "border-amber-300 ring-1 ring-amber-200" : undefined}>
+      <div className="flex gap-3">
+        <Avatar src={c.avatar_url} first={c.first_name} last={c.last_initial} size={56} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <h3 className="text-base font-semibold text-slate-900">
+              <Link href={`/candidate/${c.id}`} className="hover:text-brand-700 hover:underline">
+                {displayName(c.first_name, c.last_initial, true)}
+              </Link>
+            </h3>
+            {c.is_premium ? <Badge tone="premium">Premium</Badge> : null}
+            {c.phone_verified || c.identity_verified ? (
+              <span title={c.identity_verified ? "Shaxs tasdiqlangan" : "Telefon tasdiqlangan"} className="text-brand-600">
+                <ShieldIcon size={16} />
+              </span>
+            ) : null}
+          </div>
+          <p className="text-sm font-medium text-brand-700">{c.profession_name ?? "Kasb koʻrsatilmagan"}</p>
+          {c.headline ? <p className="truncate text-sm text-slate-600">{c.headline}</p> : null}
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+        {place ? <span className="inline-flex items-center gap-1"><PinIcon size={16} />{place}</span> : null}
+        {distance ? <span className="font-medium text-brand-700">~{distance}</span> : null}
+        <span>Tajriba: {Number(c.experience_years ?? 0)} yil</span>
+        {c.rating_count ? (
+          <span className="inline-flex items-center gap-1 text-amber-600">
+            <StarIcon size={14} /> {Number(c.rating_avg).toFixed(1)} ({c.rating_count})
+          </span>
+        ) : null}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {c.availability ? <Badge tone={c.availability === "immediately" ? "success" : "neutral"}>{AVAILABILITY_LABELS[c.availability]}</Badge> : null}
+        {(c.skills ?? []).slice(0, 4).map((s) => (
+          <Badge key={s}>{s}</Badge>
+        ))}
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-2">
+        <span className="text-sm font-medium text-slate-900">
+          {formatSalary(c.expected_salary_min, c.expected_salary_max, c.salary_type)}
+        </span>
+        <div className="flex gap-2">
+          <Link href={`/candidate/${c.id}`} className={buttonClass("outline", "sm")}>Profilni koʻrish</Link>
+          <Link href={`/candidate/${c.id}#contact`} className={buttonClass("primary", "sm")}>Bogʻlanish</Link>
+        </div>
+      </div>
+    </Card>
+  );
+}

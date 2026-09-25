@@ -1,0 +1,35 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# testing
+/coverage
+/test-results
+/playwright-report
+/blob-report
+
+# next.js
+/.next/
+/out/
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+
+# env files — secrets never go to git (.env.example is the template)
+.env*
+!.env.example
+
+# supabase local
+supabase/.branches
+supabase/.temp
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+__pycache__/

@@ -143,3 +143,29 @@ describe("CSP", () => {
     expect(generateNonce()).not.toBe(nonce);
   });
 });
+
+describe("DatabaseRateLimitStore", () => {
+  it("hashes keys and uses database counters", async () => {
+    const { DatabaseRateLimitStore, hashKey } = await import("@/lib/rate-limit-store");
+    const calls: { p_key: string }[] = [];
+    const client = {
+      rpc: async (_fn: "rate_limit_hit", args: { p_key: string; p_window_ms: number }) => {
+        calls.push(args);
+        return { data: [{ hits: 7, reset_at: "2030-01-01T00:00:00Z" }], error: null };
+      },
+    };
+    const store = new DatabaseRateLimitStore(client);
+    const r = await store.increment("auth:user@mail.uz:1.2.3.4", 1000);
+    expect(r.count).toBe(7);
+    expect(calls[0].p_key).toBe(hashKey("auth:user@mail.uz:1.2.3.4"));
+    expect(calls[0].p_key).not.toContain("user@mail.uz");
+  });
+
+  it("falls back to memory when the database fails", async () => {
+    const { DatabaseRateLimitStore } = await import("@/lib/rate-limit-store");
+    const client = { rpc: async () => ({ data: null, error: new Error("down") }) };
+    const store = new DatabaseRateLimitStore(client);
+    expect((await store.increment("k", 1000)).count).toBe(1);
+    expect((await store.increment("k", 1000)).count).toBe(2);
+  });
+});

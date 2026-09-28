@@ -1432,6 +1432,25 @@ export type Database = {
           },
         ];
       };
+      rate_limits: {
+        Row: {
+          key: string;
+          hits: number;
+          reset_at: string;
+        };
+        Insert: {
+          key: string;
+          hits?: number;
+          reset_at: string;
+        };
+        Update: {
+          key?: string;
+          hits?: number;
+          reset_at?: string;
+        };
+        Relationships: [
+        ];
+      };
       regions: {
         Row: {
           id: number;
@@ -2654,6 +2673,20 @@ export type Database = {
           p_to: Database["public"]["Enums"]["payment_status"];
         };
         Returns: boolean;
+      };
+      rate_limit_hit: {
+        Args: {
+          p_key: string;
+          p_window_ms: number;
+        };
+        Returns: {
+          hits: number | null;
+          reset_at: string | null;
+        }[];
+      };
+      rate_limits_cleanup: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
       };
       region_stats: {
         Args: Record<PropertyKey, never>;

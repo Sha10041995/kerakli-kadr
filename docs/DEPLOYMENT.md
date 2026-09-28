@@ -11,9 +11,11 @@
 3. Auth: Email provider yoqilgan, “Confirm email” yoqilgan; Site URL = `https://kadrtop.uz`;
    Redirect URL: `https://kadrtop.uz/auth/callback`.
 4. Realtime: `messages` jadvali `supabase_realtime` publikatsiyasida (migratsiya avtomatik qoʻshadi).
-5. Rejalashtirilgan ishlar: Vercel'da `vercel.json` cron (`5 * * * *`) `/api/cron` ni chaqiradi
-   (`Authorization: Bearer $CRON_SECRET`) — muddati tugagan vakansiyalar, eslatmalar va email/Telegram yetkazish.
-   Boshqa hostingda shu URL'ni tashqi cron bilan soatlik chaqiring (yoki pg_cron, docs/DATABASE.md).
+5. Rejalashtirilgan ishlar: `/api/cron` (`Authorization: Bearer $CRON_SECRET`) — muddati tugagan vakansiyalar,
+   eslatmalar va email/Telegram yetkazish. `vercel.json` cron kuniga bir marta ishlaydi (Vercel Hobby cheklovi).
+   Soatlik ishlatish uchun tashqi cron (masalan, cron-job.org) har soatda
+   `GET https://<sayt>/api/cron` ni `Authorization: Bearer <CRON_SECRET>` header bilan chaqirsin
+   (Vercel Pro'da `vercel.json` ni `5 * * * *` ga qaytarish mumkin).
 6. Birinchi super admin: roʻyxatdan oʻting, soʻng SQL editor'da
    `insert into user_roles (user_id, role) values ('<uuid>', 'super_admin'), ('<uuid>', 'admin');`
 7. Rasmiy hududlar datasetini import qiling: `scripts/import-locations.mjs`.

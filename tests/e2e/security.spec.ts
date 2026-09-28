@@ -33,3 +33,31 @@ test.describe("access control", () => {
     expect(res.status()).toBe(404);
   });
 });
+
+test.describe("scheduled jobs and bot webhooks", () => {
+  test("cron endpoint requires the secret and runs jobs", async ({ request }) => {
+    expect((await request.get("/api/cron")).status()).toBe(401);
+    expect((await request.get("/api/cron", { headers: { authorization: "Bearer wrong" } })).status()).toBe(401);
+    const res = await request.get("/api/cron", { headers: { authorization: "Bearer local-dev-cron-secret" } });
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.jobs).toHaveProperty("vacancies_expired");
+    expect(body.delivery.skipped).toBe(true); // no channel configured locally
+  });
+
+  test("telegram webhook is disabled without configuration", async ({ request }) => {
+    expect(
+      (await request.post("/api/telegram/webhook", { data: { message: { chat: { id: 1 }, text: "/start x" } } })).status(),
+    ).toBe(404);
+  });
+
+  test("notification settings page", async ({ page }) => {
+    const { login } = await import("./helpers");
+    await login(page, "demo.candidate07@kadrtop.demo", undefined, "/dashboard/settings");
+    await expect(page.getByRole("heading", { name: "Sozlamalar" })).toBeVisible();
+    await page.getByRole("checkbox", { name: /Email orqali/ }).uncheck();
+    await page.getByRole("button", { name: "Saqlash" }).click();
+    await expect(page.getByText("Sozlamalar saqlandi")).toBeVisible();
+  });
+});

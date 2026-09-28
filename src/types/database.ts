@@ -1385,6 +1385,9 @@ export type Database = {
           is_demo: boolean;
           created_at: string;
           updated_at: string;
+          notify_email: boolean;
+          notify_telegram: boolean;
+          telegram_chat_id: number | null;
         };
         Insert: {
           id: string;
@@ -1403,6 +1406,9 @@ export type Database = {
           is_demo?: boolean;
           created_at?: string;
           updated_at?: string;
+          notify_email?: boolean;
+          notify_telegram?: boolean;
+          telegram_chat_id?: number | null;
         };
         Update: {
           id?: string;
@@ -1421,6 +1427,9 @@ export type Database = {
           is_demo?: boolean;
           created_at?: string;
           updated_at?: string;
+          notify_email?: boolean;
+          notify_telegram?: boolean;
+          telegram_chat_id?: number | null;
         };
         Relationships: [
           {
@@ -1952,6 +1961,7 @@ export type Database = {
           cancel_at_period_end: boolean;
           created_at: string;
           updated_at: string;
+          reminder_sent_at: string | null;
         };
         Insert: {
           id?: string;
@@ -1964,6 +1974,7 @@ export type Database = {
           cancel_at_period_end?: boolean;
           created_at?: string;
           updated_at?: string;
+          reminder_sent_at?: string | null;
         };
         Update: {
           id?: string;
@@ -1976,6 +1987,7 @@ export type Database = {
           cancel_at_period_end?: boolean;
           created_at?: string;
           updated_at?: string;
+          reminder_sent_at?: string | null;
         };
         Relationships: [
           {
@@ -1994,6 +2006,35 @@ export type Database = {
           },
           {
             foreignKeyName: "subscriptions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      telegram_link_tokens: {
+        Row: {
+          token: string;
+          user_id: string;
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: {
+          token: string;
+          user_id: string;
+          expires_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          token?: string;
+          user_id?: string;
+          expires_at?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "telegram_link_tokens_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
@@ -2087,6 +2128,7 @@ export type Database = {
           is_demo: boolean;
           created_at: string;
           updated_at: string;
+          expiry_reminder_sent_at: string | null;
         };
         Insert: {
           id?: string;
@@ -2130,6 +2172,7 @@ export type Database = {
           is_demo?: boolean;
           created_at?: string;
           updated_at?: string;
+          expiry_reminder_sent_at?: string | null;
         };
         Update: {
           id?: string;
@@ -2173,6 +2216,7 @@ export type Database = {
           is_demo?: boolean;
           created_at?: string;
           updated_at?: string;
+          expiry_reminder_sent_at?: string | null;
         };
         Relationships: [
           {
@@ -2551,6 +2595,13 @@ export type Database = {
         };
         Returns: string;
       };
+      link_telegram_chat: {
+        Args: {
+          p_token: string;
+          p_chat_id: number;
+        };
+        Returns: string;
+      };
       location_point: {
         Args: {
           p_region_id: number;
@@ -2589,6 +2640,12 @@ export type Database = {
           p_ip?: string | null;
         };
         Returns: undefined;
+      };
+      mark_notifications_delivered: {
+        Args: {
+          p_ids: string[];
+        };
+        Returns: number;
       };
       mark_payment_failed: {
         Args: {
@@ -2683,6 +2740,22 @@ export type Database = {
         };
         Returns: boolean;
       };
+      pending_notification_deliveries: {
+        Args: {
+          p_limit?: number | null;
+        };
+        Returns: {
+          id: string | null;
+          user_id: string | null;
+          title: string | null;
+          body: string | null;
+          link: string | null;
+          email: string | null;
+          notify_email: boolean | null;
+          telegram_chat_id: number | null;
+          notify_telegram: boolean | null;
+        }[];
+      };
       rate_limit_hit: {
         Args: {
           p_key: string;
@@ -2726,6 +2799,10 @@ export type Database = {
           has_location: boolean | null;
           region_only: boolean | null;
         };
+      };
+      run_scheduled_jobs: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
       };
       search_candidates: {
         Args: {

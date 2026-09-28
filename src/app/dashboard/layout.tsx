@@ -24,6 +24,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
     { href: "/messages", label: "Xabarlar" },
     { href: "/dashboard/verification", label: "Tasdiqlash" },
     { href: "/dashboard/billing", label: "Tarif va toʻlovlar" },
+    { href: "/dashboard/settings", label: "Sozlamalar" },
     { href: "/support", label: "Yordam" },
   ];
   return (

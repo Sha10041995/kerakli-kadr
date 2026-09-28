@@ -106,6 +106,7 @@ const envFile = [
   `SUPABASE_SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}`,
   "PAYMENT_PROVIDER=mock",
   "PAYMENTS_MOCK_ENABLED=true",
+  "CRON_SECRET=local-dev-cron-secret",
   "",
 ].join("\n");
 writeFileSync(path.join(STACK_DIR, "env.local"), envFile);

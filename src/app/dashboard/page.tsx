@@ -18,7 +18,7 @@ export default async function DashboardPage() {
   const user = await requireUser("/dashboard");
   const supabase = await createClient();
 
-  const [candidate, applications, recommendations, vacancies] = await Promise.all([
+  const [candidate, applications, recommendations, vacancies, views] = await Promise.all([
     user.isJobSeeker
       ? supabase
           .from("candidate_profiles")
@@ -30,6 +30,14 @@ export default async function DashboardPage() {
     user.isJobSeeker ? listCandidateApplications(user.id) : [],
     user.isJobSeeker && user.hasCandidateProfile ? matchVacanciesForMe(6) : [],
     user.isEmployer && user.companyId ? listCompanyVacancies(user.companyId) : [],
+    user.isJobSeeker
+      ? supabase
+          .from("candidate_profile_stats")
+          .select("views_count")
+          .eq("candidate_id", user.id)
+          .maybeSingle()
+          .then((r) => r.data?.views_count ?? 0)
+      : 0,
   ]);
 
   const active = vacancies.filter((v) => v.status === "active").length;
@@ -62,13 +70,14 @@ export default async function DashboardPage() {
               </Link>
             </Alert>
           ) : null}
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Stat
               label="Profil"
               value={`${candidate?.completeness ?? 0}%`}
               hint={candidate?.is_public ? "Ommaviy" : "Yashirin"}
             />
             <Stat label="Arizalar" value={applications.length} />
+            <Stat label="Profil koʻrishlari" value={views} hint="ish beruvchilar tomonidan" />
             <Stat
               label="Suhbatga taklif"
               value={applications.filter((a) => a.status === "interview" || a.status === "offered").length}

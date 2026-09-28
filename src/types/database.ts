@@ -339,6 +339,32 @@ export type Database = {
           },
         ];
       };
+      candidate_profile_stats: {
+        Row: {
+          candidate_id: string;
+          views_count: number;
+          last_viewed_at: string | null;
+        };
+        Insert: {
+          candidate_id: string;
+          views_count?: number;
+          last_viewed_at?: string | null;
+        };
+        Update: {
+          candidate_id?: string;
+          views_count?: number;
+          last_viewed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "candidate_profile_stats_candidate_id_fkey";
+            columns: ["candidate_id"];
+            isOneToOne: true;
+            referencedRelation: "candidate_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       candidate_profiles: {
         Row: {
           id: string;
@@ -2454,6 +2480,16 @@ export type Database = {
         };
         Returns: boolean;
       };
+      candidate_response_stats: {
+        Args: {
+          p_candidate_id: string;
+        };
+        Returns: {
+          response_rate: number | null;
+          replied: number | null;
+          total: number | null;
+        }[];
+      };
       category_stats: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -2476,6 +2512,16 @@ export type Database = {
           p_company_id: string;
         };
         Returns: Json;
+      };
+      company_response_stats: {
+        Args: {
+          p_company_id: string;
+        };
+        Returns: {
+          response_rate: number | null;
+          responded: number | null;
+          total: number | null;
+        }[];
       };
       create_notification: {
         Args: {
@@ -2514,6 +2560,10 @@ export type Database = {
           demand_ratio: number | null;
         }[];
       };
+      engagement_stats: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
       expire_vacancies: {
         Args: Record<PropertyKey, never>;
         Returns: number;
@@ -2548,6 +2598,12 @@ export type Database = {
           p_role: Database["public"]["Enums"]["app_role"];
         };
         Returns: boolean;
+      };
+      increment_candidate_views: {
+        Args: {
+          p_candidate_id: string;
+        };
+        Returns: undefined;
       };
       increment_vacancy_views: {
         Args: {

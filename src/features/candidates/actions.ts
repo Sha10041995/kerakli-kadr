@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { fail, toUserMessage, type ActionResult } from "@/lib/errors";
 import { uploadFile } from "@/features/uploads";
+import { checkRateLimit } from "@/lib/request";
 import { fieldErrors, uuidSchema } from "@/validations/common";
 import {
   candidateProfileSchema,
@@ -198,4 +199,12 @@ export async function uploadAvatarAction(formData: FormData): Promise<ActionResu
   if (error) return fail(toUserMessage(error));
   revalidatePath("/", "layout");
   return { ok: true, message: "Rasm yangilandi" };
+}
+
+export async function recordCandidateViewAction(candidateId: string) {
+  if (!uuidSchema.safeParse(candidateId).success) return;
+  const limit = await checkRateLimit(`cview:${candidateId}`, { limit: 1, windowMs: 30 * 60_000 });
+  if (!limit.ok) return;
+  const supabase = await createClient();
+  await supabase.rpc("increment_candidate_views", { p_candidate_id: candidateId });
 }

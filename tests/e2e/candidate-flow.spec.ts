@@ -29,3 +29,22 @@ test("candidate: registration → profile → local job search → application",
   await page.goto("/dashboard/cv");
   await expect(page.getByRole("heading", { name: "Sardor Test" })).toBeVisible();
 });
+
+test("profile views are counted for the candidate", async ({ page, browser }) => {
+  const { login } = await import("./helpers");
+  const employerCtx = await browser.newContext();
+  const employer = await employerCtx.newPage();
+  await login(employer, "demo.employer03@kadrtop.demo");
+  await employer.goto("/candidate/00000000-0000-4000-8000-000000000011");
+  await expect(employer.getByRole("heading", { level: 1 })).toBeVisible();
+  await employer.waitForTimeout(1000);
+  await employerCtx.close();
+
+  await login(page, "demo.candidate11@kadrtop.demo");
+  await expect(page.getByText("Profil koʻrishlari")).toBeVisible();
+  const value = page
+    .locator("div", { has: page.getByText("Profil koʻrishlari", { exact: true }) })
+    .locator("p")
+    .nth(1);
+  await expect(value).not.toHaveText("0");
+});

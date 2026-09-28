@@ -5,6 +5,7 @@ import { CheckIcon, PinIcon, StarIcon } from "@/components/ui/icons";
 import { VacancyCard } from "@/features/vacancies/components/vacancy-card";
 import { ReportButton } from "@/features/reports/components/report-button";
 import { getCurrentUser } from "@/features/auth/session";
+import { companyResponseRate } from "@/features/reputation";
 import { COMPANY_TYPE_LABELS } from "@/lib/i18n/uz";
 import { createPublicClient } from "@/lib/supabase/public";
 import { timeAgo } from "@/lib/utils";
@@ -38,7 +39,7 @@ export default async function CompanyPage(props: PageProps<"/company/[slug]">) {
   const company = await getCompany(slug);
   if (!company) notFound();
   const db = createPublicClient(120)!;
-  const [{ data: vacancies }, { data: reviews }, user] = await Promise.all([
+  const [{ data: vacancies }, { data: reviews }, user, responseRate] = await Promise.all([
     db.rpc("search_vacancies", { p_company_id: company.id, p_sort: "newest", p_limit: 30 }),
     db
       .from("reviews")
@@ -48,6 +49,7 @@ export default async function CompanyPage(props: PageProps<"/company/[slug]">) {
       .order("created_at", { ascending: false })
       .limit(10),
     getCurrentUser(),
+    companyResponseRate(company.id),
   ]);
 
   return (
@@ -77,6 +79,7 @@ export default async function CompanyPage(props: PageProps<"/company/[slug]">) {
               </span>
             ) : null}
             <span>{company.hires_count} ta yollangan xodim</span>
+            {responseRate != null ? <span>Arizalarga javob: {responseRate}%</span> : null}
           </p>
         </div>
         {user ? <ReportButton targetType="company" targetId={company.id} /> : null}

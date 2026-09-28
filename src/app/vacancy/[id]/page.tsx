@@ -11,6 +11,7 @@ import { FavoriteButton } from "@/features/favorites/components/favorite-button"
 import { ReportButton } from "@/features/reports/components/report-button";
 import { ViewTracker } from "@/features/vacancies/components/view-tracker";
 import { getVacancy } from "@/features/vacancies/queries";
+import { companyResponseRate } from "@/features/reputation";
 import { EDUCATION_LABELS, EMPLOYMENT_TYPE_LABELS, WORK_SCHEDULE_LABELS } from "@/lib/i18n/uz";
 import { createClient } from "@/lib/supabase/server";
 import { jobPostingJsonLd, jsonLdScript } from "@/lib/seo";
@@ -34,6 +35,7 @@ export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
   const { id } = await props.params;
   const [v, user, requestHeaders] = await Promise.all([getVacancy(id), getCurrentUser(), headers()]);
   if (!v) notFound();
+  const responseRate = await companyResponseRate(v.company_id);
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   let applyState: "guest" | "no_role" | "no_profile" | "can_apply" | "applied" | "own" | "closed" = "guest";
@@ -235,6 +237,11 @@ export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
               </div>
               {company.verification_status === "verified" ? (
                 <p className="mt-3 text-xs text-emerald-700">✓ Tasdiqlangan ish beruvchi</p>
+              ) : null}
+              {responseRate != null ? (
+                <p className="mt-1 text-xs text-slate-600">
+                  Arizalarga javob beradi: <strong>{responseRate}%</strong>
+                </p>
               ) : null}
             </Card>
           ) : null}

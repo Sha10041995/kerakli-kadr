@@ -7,6 +7,8 @@ import { PinIcon, ShieldIcon, StarIcon } from "@/components/ui/icons";
 import { LocationMap } from "@/components/map/location-map";
 import { getCurrentUser } from "@/features/auth/session";
 import { getCandidate } from "@/features/candidates/queries";
+import { CandidateViewTracker } from "@/features/candidates/components/view-tracker";
+import { candidateResponseRate } from "@/features/reputation";
 import { FavoriteButton } from "@/features/favorites/components/favorite-button";
 import { StartChatButton } from "@/features/messaging/components/start-chat-button";
 import { ReportButton } from "@/features/reports/components/report-button";
@@ -32,7 +34,7 @@ export async function generateMetadata(props: PageProps<"/candidate/[id]">): Pro
 
 export default async function CandidatePage(props: PageProps<"/candidate/[id]">) {
   const { id } = await props.params;
-  const [c, user] = await Promise.all([getCandidate(id), getCurrentUser()]);
+  const [c, user, responseRate] = await Promise.all([getCandidate(id), getCurrentUser(), candidateResponseRate(id)]);
   if (!c) notFound();
   const { profile: p, person, reviews } = c;
 
@@ -54,6 +56,7 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
 
   return (
     <Container className="py-6 sm:py-10">
+      {!isOwner && p.is_public ? <CandidateViewTracker candidateId={id} /> : null}
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-6">
           <Card className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -80,6 +83,7 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
                   </span>
                 ) : null}
                 {p.completed_jobs ? <span>{p.completed_jobs} ta bajarilgan ish</span> : null}
+                {responseRate != null ? <span>Xabarlarga javob: {responseRate}%</span> : null}
               </p>
               {badges.length ? (
                 <div className="mt-2 flex flex-wrap gap-1.5">

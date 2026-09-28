@@ -2389,6 +2389,15 @@ export type Database = {
         };
         Returns: boolean;
       };
+      broadcast_notification: {
+        Args: {
+          p_title: string;
+          p_body?: string | null;
+          p_link?: string | null;
+          p_audience?: string | null;
+        };
+        Returns: number;
+      };
       can_view_candidate: {
         Args: {
           p_candidate_id: string;

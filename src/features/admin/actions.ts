@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fail, toUserMessage, type ActionResult } from "@/lib/errors";
 import { normalizeWeights } from "@/features/matching/score";
 import { slugify } from "@/lib/utils";
-import { uuidSchema } from "@/validations/common";
+import { fieldErrors, uuidSchema } from "@/validations/common";
 
 /** Every admin action re-checks the caller's role server-side (RLS is the second line). */
 async function staffContext(adminOnly = false) {
@@ -309,4 +309,76 @@ export async function updateSettingsAction(input: unknown): Promise<ActionResult
   }
   revalidatePath("/admin/settings");
   return { ok: true, message: "Sozlamalar saqlandi" };
+}
+
+// ---- Support, companies, broadcast ----------------------------------------------
+export async function replyComplaintAction(input: unknown): Promise<ActionResult> {
+  const parsed = z
+    .object({ id: uuidSchema, reply: z.string().trim().min(2).max(5000), status: z.enum(["resolved", "reviewing", "dismissed"]) })
+    .safeParse(input);
+  if (!parsed.success) return fail("Maʼlumotlarni tekshiring");
+  const ctx = await staffContext();
+  if (!ctx.ok) return fail(DENIED);
+  const { error } = await ctx.supabase
+    .from("complaints")
+    .update({ admin_reply: parsed.data.reply, status: parsed.data.status })
+    .eq("id", parsed.data.id);
+  if (error) return fail(toUserMessage(error));
+  revalidatePath("/admin/complaints");
+  return { ok: true, message: "Javob yuborildi" };
+}
+
+export async function setCompanyFlagsAction(input: unknown): Promise<ActionResult> {
+  const parsed = z
+    .object({
+      id: uuidSchema,
+      verification: z.enum(["unverified", "pending", "verified", "rejected"]).optional(),
+      featuredDays: z.number().int().min(0).max(365).optional(),
+    })
+    .safeParse(input);
+  if (!parsed.success) return fail("Notoʻgʻri soʻrov");
+  const ctx = await staffContext(true);
+  if (!ctx.ok) return fail(DENIED);
+  const patch: {
+    verification_status?: "unverified" | "pending" | "verified" | "rejected";
+    is_featured?: boolean;
+    featured_until?: string | null;
+  } = {};
+  if (parsed.data.verification) patch.verification_status = parsed.data.verification;
+  if (parsed.data.featuredDays !== undefined) {
+    patch.is_featured = parsed.data.featuredDays > 0;
+    patch.featured_until =
+      parsed.data.featuredDays > 0 ? new Date(Date.now() + parsed.data.featuredDays * 86_400_000).toISOString() : null;
+  }
+  const { error } = await ctx.supabase.from("companies").update(patch).eq("id", parsed.data.id);
+  if (error) return fail(toUserMessage(error));
+  revalidatePath("/admin/companies");
+  return { ok: true };
+}
+
+export async function broadcastAction(input: unknown): Promise<ActionResult<{ recipients: number }>> {
+  const parsed = z
+    .object({
+      title: z.string().trim().min(3).max(200),
+      body: z.string().trim().max(1000).optional(),
+      link: z
+        .string()
+        .trim()
+        .regex(/^\/[^\s]*$/, { error: "Havola / bilan boshlansin" })
+        .optional()
+        .or(z.literal("")),
+      audience: z.enum(["all", "job_seeker", "employer"]),
+    })
+    .safeParse(input);
+  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  const ctx = await staffContext(true);
+  if (!ctx.ok) return fail(DENIED);
+  const { data, error } = await ctx.supabase.rpc("broadcast_notification", {
+    p_title: parsed.data.title,
+    p_body: parsed.data.body || null,
+    p_link: parsed.data.link || null,
+    p_audience: parsed.data.audience,
+  });
+  if (error) return fail(toUserMessage(error));
+  return { ok: true, data: { recipients: data ?? 0 }, message: `${data ?? 0} ta foydalanuvchiga yuborildi` };
 }

@@ -3,13 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox, Input, Label, Select } from "@/components/ui/form";
+import { Checkbox, Input, Label, Select, Textarea } from "@/components/ui/form";
 import { ActionForm } from "@/components/ui/action-form";
 import type { ActionResult } from "@/lib/errors";
 import {
   addCategoryAction,
   addLocationAction,
   addProfessionAction,
+  broadcastAction,
+  replyComplaintAction,
+  setCompanyFlagsAction,
   decideVerificationAction,
   moderateVacancyAction,
   resolveReportAction,
@@ -455,6 +458,106 @@ export function SettingsForm({
         </div>
       </fieldset>
       <Button type="submit">Saqlash</Button>
+    </ActionForm>
+  );
+}
+
+export function ComplaintReplyForm({ id }: { id: string }) {
+  return (
+    <ActionForm
+      action={(fd) => replyComplaintAction({ id, reply: fd.get("reply"), status: fd.get("status") })}
+      className="space-y-2"
+    >
+      <Textarea
+        name="reply"
+        required
+        rows={3}
+        maxLength={5000}
+        placeholder="Javob matni (foydalanuvchiga yuboriladi)"
+        aria-label="Javob"
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <Select name="status" defaultValue="resolved" aria-label="Holat" className="h-9 w-48">
+          <option value="resolved">Hal qilindi</option>
+          <option value="reviewing">Koʻrib chiqilmoqda</option>
+          <option value="dismissed">Yopish</option>
+        </Select>
+        <Button type="submit" size="sm">
+          Javob yuborish
+        </Button>
+      </div>
+    </ActionForm>
+  );
+}
+
+export function CompanyControls({ id, verification, featured }: { id: string; verification: string; featured: boolean }) {
+  const { pending, error, run } = useAction();
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {verification !== "verified" ? (
+        <Button size="sm" disabled={pending} onClick={() => run(() => setCompanyFlagsAction({ id, verification: "verified" }))}>
+          Tasdiqlash
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={pending}
+          onClick={() => run(() => setCompanyFlagsAction({ id, verification: "unverified" }))}
+        >
+          Tasdiqni bekor qilish
+        </Button>
+      )}
+      <Button
+        size="sm"
+        variant={featured ? "outline" : "accent"}
+        disabled={pending}
+        onClick={() => run(() => setCompanyFlagsAction({ id, featuredDays: featured ? 0 : 30 }))}
+      >
+        {featured ? "Tavsiyadan olish" : "30 kun tavsiya etish"}
+      </Button>
+      <Err error={error} />
+    </div>
+  );
+}
+
+export function BroadcastForm() {
+  return (
+    <ActionForm
+      action={(fd) =>
+        broadcastAction({
+          title: fd.get("title"),
+          body: String(fd.get("body") ?? ""),
+          link: String(fd.get("link") ?? ""),
+          audience: fd.get("audience"),
+        })
+      }
+      className="space-y-3"
+      resetOnSuccess
+    >
+      <div>
+        <Label htmlFor="b-title">Sarlavha</Label>
+        <Input id="b-title" name="title" required maxLength={200} />
+      </div>
+      <div>
+        <Label htmlFor="b-body">Matn</Label>
+        <Textarea id="b-body" name="body" rows={3} maxLength={1000} />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="b-link">Ichki havola (ixtiyoriy)</Label>
+          <Input id="b-link" name="link" placeholder="/pricing" maxLength={300} />
+        </div>
+        <div>
+          <Label htmlFor="b-aud">Kimga</Label>
+          <Select id="b-aud" name="audience" defaultValue="all">
+            <option value="all">Barcha foydalanuvchilar</option>
+            <option value="job_seeker">Ish izlovchilar</option>
+            <option value="employer">Ish beruvchilar</option>
+          </Select>
+        </div>
+      </div>
+      <Button type="submit">Yuborish</Button>
     </ActionForm>
   );
 }

@@ -68,6 +68,11 @@ export function SiteFooter() {
                 Foydalanish shartlari
               </Link>
             </li>
+            <li>
+              <Link href="/support" className="hover:text-brand-700">
+                Yordam va murojaatlar
+              </Link>
+            </li>
           </ul>
         </div>
       </Container>

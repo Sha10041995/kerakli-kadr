@@ -24,6 +24,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
     { href: "/messages", label: "Xabarlar" },
     { href: "/dashboard/verification", label: "Tasdiqlash" },
     { href: "/dashboard/billing", label: "Tarif va toʻlovlar" },
+    { href: "/support", label: "Yordam" },
   ];
   return (
     <Container className="py-6 sm:py-8">

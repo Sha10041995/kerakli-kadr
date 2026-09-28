@@ -11,12 +11,17 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
     { href: "/admin", label: "Dashboard" },
     { href: "/admin/vacancies", label: "Vakansiyalar" },
     { href: "/admin/reports", label: "Shikoyatlar" },
+    { href: "/admin/complaints", label: "Murojaatlar" },
+    { href: "/admin/applications", label: "Arizalar" },
     { href: "/admin/verification", label: "Tasdiqlash" },
     { href: "/admin/reviews", label: "Sharhlar" },
     { href: "/admin/analytics", label: "Analitika" },
     ...(user.isAdmin
       ? [
           { href: "/admin/users", label: "Foydalanuvchilar" },
+          { href: "/admin/companies", label: "Kompaniyalar" },
+          { href: "/admin/subscriptions", label: "Obunalar" },
+          { href: "/admin/notifications", label: "Bildirishnoma yuborish" },
           { href: "/admin/locations", label: "Hududlar" },
           { href: "/admin/categories", label: "Kasblar" },
           { href: "/admin/plans", label: "Tariflar" },

@@ -4,7 +4,7 @@ import { env, isSupabaseConfigured } from "@/lib/env";
 import { buildCsp, generateNonce } from "@/lib/security/csp";
 import type { Database } from "@/types/database";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/admin", "/messages", "/notifications", "/onboarding"];
+const PROTECTED_PREFIXES = ["/dashboard", "/admin", "/messages", "/notifications", "/onboarding", "/support"];
 
 export function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

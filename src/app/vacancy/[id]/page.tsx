@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { Avatar, Badge, Card, Container, DemoBadge } from "@/components/ui/misc";
 import { BoltIcon, CheckIcon, PinIcon, StarIcon } from "@/components/ui/icons";
@@ -31,8 +32,9 @@ export async function generateMetadata(props: PageProps<"/vacancy/[id]">): Promi
 
 export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
   const { id } = await props.params;
-  const [v, user] = await Promise.all([getVacancy(id), getCurrentUser()]);
+  const [v, user, requestHeaders] = await Promise.all([getVacancy(id), getCurrentUser(), headers()]);
   if (!v) notFound();
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   let applyState: "guest" | "no_role" | "no_profile" | "can_apply" | "applied" | "own" | "closed" = "guest";
   let isFavorite = false;
@@ -78,7 +80,7 @@ export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
   return (
     <Container className="py-6 sm:py-10">
       {v.status === "active" ? (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
+        <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
       ) : null}
       {v.status === "active" ? <ViewTracker vacancyId={v.id} /> : null}
       <nav aria-label="Yoʻl" className="mb-4 text-sm text-slate-500">

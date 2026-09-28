@@ -129,3 +129,17 @@ describe("cn (class merging)", () => {
     expect(cn("bg-brand-600 text-white", "bg-white text-brand-800")).toBe("bg-white text-brand-800");
   });
 });
+
+describe("CSP", () => {
+  it("uses a nonce instead of unsafe-inline for scripts", async () => {
+    const { buildCsp, generateNonce } = await import("@/lib/security/csp");
+    const nonce = generateNonce();
+    const prod = buildCsp(nonce, { dev: false, supabaseUrl: "https://abc.supabase.co" });
+    expect(prod).toContain(`script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`);
+    expect(prod).not.toMatch(/script-src[^;]*unsafe/);
+    expect(prod).toContain("connect-src 'self' https://abc.supabase.co wss://abc.supabase.co");
+    expect(prod).toContain("upgrade-insecure-requests");
+    expect(buildCsp(nonce, { dev: true })).toContain("'unsafe-eval'");
+    expect(generateNonce()).not.toBe(nonce);
+  });
+});

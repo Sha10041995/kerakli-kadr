@@ -2,11 +2,19 @@ import { expect, test } from "@playwright/test";
 
 test.describe("public pages", () => {
   test("home page shows hero, search and local talent", async ({ page }) => {
+    const cspViolations: string[] = [];
+    page.on("console", (msg) => {
+      if (/Content Security Policy/i.test(msg.text())) cspViolations.push(msg.text());
+    });
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("oʻz hududingizdan toping");
     await expect(page.getByRole("tab", { name: "Ish qidiryapman" })).toBeVisible();
     await expect(page.getByText("Hududingizdagi kadrlar")).toBeVisible();
     await expect(page.getByText("DEMO").first()).toBeHidden(); // demo badge only on detail pages
+    // interactive client component works (tabs) => hydration passed the strict CSP
+    await page.getByRole("tab", { name: "Kadr qidiryapman" }).click();
+    await expect(page.getByText("Qanday kadr kerak?")).toBeVisible();
+    expect(cspViolations).toEqual([]);
   });
 
   test("location-first search from the home page", async ({ page }) => {
@@ -56,7 +64,17 @@ test.describe("public pages", () => {
   test("security headers are set", async ({ request }) => {
     const res = await request.get("/");
     const h = res.headers();
-    expect(h["content-security-policy"]).toContain("frame-ancestors 'none'");
+    const csp = h["content-security-policy"];
+    expect(csp).toContain("frame-ancestors 'none'");
+    const scriptSrc = csp.split(";").find((d) => d.trim().startsWith("script-src")) ?? "";
+    expect(scriptSrc).toMatch(/'nonce-[A-Za-z0-9+/=]+'/);
+    expect(scriptSrc).not.toContain("'unsafe-inline'");
+    // every inline script rendered by Next.js carries the request nonce
+    const nonce = scriptSrc.match(/'nonce-([^']+)'/)![1];
+    const html = await res.text();
+    const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)([^>]*)>/g)].map((m) => m[1]);
+    expect(scripts.length).toBeGreaterThan(0);
+    for (const attrs of scripts) expect(attrs).toContain(`nonce="${nonce}"`);
     expect(h["x-content-type-options"]).toBe("nosniff");
     expect(h["x-frame-options"]).toBe("DENY");
     expect(h["x-powered-by"]).toBeUndefined();

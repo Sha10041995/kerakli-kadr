@@ -16,7 +16,8 @@ import { parseCandidateSearch, searchToQuery, totalPages } from "@/features/sear
 import { resolveSearchPath } from "@/features/search/resolve";
 import { seoPath, seoTitle } from "@/features/search/seo-routes";
 import { isSupabaseConfigured } from "@/lib/env";
-import { formatNumber } from "@/lib/utils";
+import { MapView } from "@/components/map/map-view";
+import { displayName, formatNumber } from "@/lib/utils";
 
 export async function generateMetadata(props: PageProps<"/candidates/[[...slug]]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -59,6 +60,15 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
   });
 
   const basePath = seoPath("candidates", seo);
+  const isMap = raw.view === "map";
+  // SEO path segments already carry region/district/profession
+  const hrefWith = (over: Record<string, string | number | undefined>) =>
+    `${basePath}${searchToQuery(search, {
+      region: seo.region ? undefined : search.region,
+      district: seo.district ? undefined : search.district,
+      profession: seo.profession ? undefined : search.profession,
+      ...over,
+    })}`;
   const profession = catalog.flatMap((c) => c.professions).find((p) => p.id === search.profession);
   const hasLocation = Boolean(search.region || search.lat !== undefined);
 
@@ -110,6 +120,45 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
           <CandidateFilters search={search} regions={regions} catalog={catalog} />
         </aside>
         <section aria-label="Nomzodlar roʻyxati" className="grid gap-4 xl:grid-cols-2 xl:content-start">
+          <div className="flex items-center justify-end gap-2 text-sm xl:col-span-2">
+            <Link
+              href={hrefWith({ view: undefined, page: search.page })}
+              aria-current={!isMap ? "page" : undefined}
+              className={isMap ? "text-slate-600 hover:underline" : "text-brand-700 font-semibold"}
+            >
+              Roʻyxat
+            </Link>
+            <span className="text-slate-300">|</span>
+            <Link
+              href={hrefWith({ view: "map", page: search.page })}
+              aria-current={isMap ? "page" : undefined}
+              className={isMap ? "text-brand-700 font-semibold" : "text-slate-600 hover:underline"}
+            >
+              Xaritada koʻrish
+            </Link>
+          </div>
+          {isMap ? (
+            <div className="xl:col-span-2">
+              <MapView
+                label="Nomzodlar taxminiy joylashuvi"
+                items={rows
+                  .filter((c) => c.lat != null && c.lng != null)
+                  .map((c) => ({
+                    id: c.id!,
+                    lat: c.lat!,
+                    lng: c.lng!,
+                    label: displayName(c.first_name, c.last_initial, true),
+                    sublabel: [c.profession_name, c.district_name].filter(Boolean).join(" · "),
+                    href: `/candidate/${c.id}`,
+                    kind: "area" as const,
+                    radiusM: 1000,
+                  }))}
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Nomzodlar joylashuvi taxminiy (~1 km) koʻrsatiladi — aniq manzillar hech qachon chiqmaydi.
+              </p>
+            </div>
+          ) : null}
           {rows.length === 0 ? (
             <div className="xl:col-span-2">
               <EmptyState
@@ -129,9 +178,7 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
             <Pagination
               page={search.page}
               pages={totalPages(total)}
-              hrefFor={(p) =>
-                `${basePath}${searchToQuery(search, { page: p, region: seo.region ? undefined : search.region, district: seo.district ? undefined : search.district, profession: seo.profession ? undefined : search.profession })}`
-              }
+              hrefFor={(p) => hrefWith({ page: p, view: isMap ? "map" : undefined })}
             />
           </div>
         </section>

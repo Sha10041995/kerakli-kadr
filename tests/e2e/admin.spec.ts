@@ -55,3 +55,9 @@ test("support ticket → admin reply → user notified; admin broadcast", async 
   await page.goto("/admin/companies");
   await expect(page.getByRole("heading", { name: "Ish beruvchilar va kompaniyalar" })).toBeVisible();
 });
+
+test("admin demand map", async ({ page }) => {
+  await login(page, "admin@kadrtop.demo", undefined, "/admin/analytics");
+  await expect(page.getByTestId("map")).toBeVisible();
+  await expect(page.locator(".leaflet-interactive").first()).toBeAttached();
+});

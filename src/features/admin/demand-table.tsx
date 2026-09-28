@@ -1,3 +1,5 @@
+import { demandColor } from "@/features/admin/demand-color";
+
 export function DemandTable({
   rows,
 }: {
@@ -29,7 +31,7 @@ export function DemandTable({
               <td>{r.profession_name}</td>
               <td>{r.vacancy_count}</td>
               <td>{r.candidate_count}</td>
-              <td className={Number(r.demand_ratio) > 1 ? "font-semibold text-red-600" : "text-slate-700"}>
+              <td className="font-semibold" style={{ color: demandColor(Number(r.demand_ratio)) }}>
                 {Number(r.demand_ratio).toFixed(2)}
               </td>
             </tr>

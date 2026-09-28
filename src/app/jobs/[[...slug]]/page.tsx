@@ -15,7 +15,8 @@ import { seoPath, seoTitle } from "@/features/search/seo-routes";
 import { VacancyCard } from "@/features/vacancies/components/vacancy-card";
 import { searchVacancies } from "@/features/vacancies/queries";
 import { isSupabaseConfigured } from "@/lib/env";
-import { formatNumber } from "@/lib/utils";
+import { MapView } from "@/components/map/map-view";
+import { formatNumber, formatSalary } from "@/lib/utils";
 
 export async function generateMetadata(props: PageProps<"/jobs/[[...slug]]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -58,6 +59,15 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
   });
 
   const basePath = seoPath("jobs", seo);
+  const isMap = raw.view === "map";
+  // SEO path segments already carry region/district/profession
+  const hrefWith = (over: Record<string, string | number | undefined>) =>
+    `${basePath}${searchToQuery(search, {
+      region: seo.region ? undefined : search.region,
+      district: seo.district ? undefined : search.district,
+      profession: seo.profession ? undefined : search.profession,
+      ...over,
+    })}`;
   const profession = catalog.flatMap((c) => c.professions).find((p) => p.id === search.profession);
 
   return (
@@ -95,6 +105,46 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
           <VacancyFilters search={search} regions={regions} catalog={catalog} />
         </aside>
         <section aria-label="Vakansiyalar roʻyxati" className="space-y-4">
+          <div className="flex items-center justify-end gap-2 text-sm">
+            <Link
+              href={hrefWith({ view: undefined, page: search.page })}
+              aria-current={!isMap ? "page" : undefined}
+              className={isMap ? "text-slate-600 hover:underline" : "text-brand-700 font-semibold"}
+            >
+              Roʻyxat
+            </Link>
+            <span className="text-slate-300">|</span>
+            <Link
+              href={hrefWith({ view: "map", page: search.page })}
+              aria-current={isMap ? "page" : undefined}
+              className={isMap ? "text-brand-700 font-semibold" : "text-slate-600 hover:underline"}
+            >
+              Xaritada koʻrish
+            </Link>
+          </div>
+          {isMap ? (
+            <div className="">
+              <MapView
+                label="Vakansiyalar xaritasi"
+                items={rows
+                  .filter((v) => v.lat != null && v.lng != null)
+                  .map((v) => ({
+                    id: v.id!,
+                    lat: v.lat!,
+                    lng: v.lng!,
+                    label: v.title ?? "",
+                    sublabel: [
+                      v.company_name,
+                      formatSalary(v.salary_min, v.salary_max, v.salary_type, v.salary_currency ?? "UZS"),
+                    ]
+                      .filter(Boolean)
+                      .join(" · "),
+                    href: `/vacancy/${v.id}`,
+                    kind: "point" as const,
+                  }))}
+              />
+            </div>
+          ) : null}
           {rows.length === 0 ? (
             <EmptyState
               title="Mos vakansiya topilmadi"
@@ -111,9 +161,7 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
           <Pagination
             page={search.page}
             pages={totalPages(total)}
-            hrefFor={(p) =>
-              `${basePath}${searchToQuery(search, { page: p, region: seo.region ? undefined : search.region, district: seo.district ? undefined : search.district, profession: seo.profession ? undefined : search.profession })}`
-            }
+            hrefFor={(p) => hrefWith({ page: p, view: isMap ? "map" : undefined })}
           />
         </section>
       </div>

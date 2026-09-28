@@ -87,3 +87,22 @@ test.describe("public pages", () => {
     expect(sitemap).toContain("/vacancy/");
   });
 });
+
+test.describe("map views", () => {
+  test("vacancies and candidates can be shown on a map (candidates as approximate areas)", async ({ page }) => {
+    await page.goto("/jobs/toshkent");
+    await page.getByRole("link", { name: "Xaritada koʻrish" }).click();
+    await expect(page).toHaveURL(/view=map/);
+    const map = page.getByTestId("map");
+    await expect(map).toBeVisible();
+    expect(Number(await map.getAttribute("data-items"))).toBeGreaterThan(0);
+    await expect(page.locator(".leaflet-interactive").first()).toBeAttached();
+
+    await page.goto("/candidates/toshkent?view=map");
+    await expect(page.getByText("Nomzodlar joylashuvi taxminiy (~1 km)")).toBeVisible();
+    await expect(page.locator(".leaflet-interactive").first()).toBeAttached();
+    // list toggle keeps filters
+    await page.getByRole("link", { name: "Roʻyxat", exact: true }).click();
+    await expect(page).not.toHaveURL(/view=map/);
+  });
+});

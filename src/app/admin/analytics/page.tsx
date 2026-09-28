@@ -3,6 +3,8 @@ import { Select } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { GetForm } from "@/components/ui/get-form";
 import { DemandTable } from "@/features/admin/demand-table";
+import { MapView } from "@/components/map/map-view";
+import { demandColor } from "@/features/admin/demand-color";
 import { getRegions } from "@/features/locations/queries";
 import { createClient } from "@/lib/supabase/server";
 import { daysAgoIso, toPositiveInt } from "@/lib/utils";
@@ -22,6 +24,36 @@ export default async function AdminAnalytics(props: PageProps<"/admin/analytics"
       .order("created_at", { ascending: false })
       .limit(1000),
   ]);
+  // aggregate demand per district and place it on district centres
+  const byDistrict = new Map<number, { vacancies: number; candidates: number; name: string }>();
+  for (const r of demand ?? []) {
+    if (r.district_id == null) continue;
+    const e = byDistrict.get(r.district_id) ?? { vacancies: 0, candidates: 0, name: r.district_name ?? "" };
+    e.vacancies += Number(r.vacancy_count ?? 0);
+    e.candidates += Number(r.candidate_count ?? 0);
+    byDistrict.set(r.district_id, e);
+  }
+  const { data: centres } = byDistrict.size
+    ? await supabase
+        .from("districts")
+        .select("id, lat, lng")
+        .in("id", [...byDistrict.keys()])
+    : { data: [] };
+  const demandItems = (centres ?? [])
+    .filter((d) => d.lat != null && d.lng != null)
+    .map((d) => {
+      const e = byDistrict.get(d.id)!;
+      const ratio = e.vacancies / Math.max(e.candidates, 1);
+      return {
+        id: String(d.id),
+        lat: d.lat!,
+        lng: d.lng!,
+        label: e.name,
+        sublabel: `${e.vacancies} vakansiya · ${e.candidates} nomzod · nisbat ${ratio.toFixed(2)}`,
+        radiusM: 6 + Math.sqrt(e.vacancies) * 4,
+        color: demandColor(ratio),
+      };
+    });
   const agg = new Map<string, { label: string; count: number; zero: number }>();
   for (const s of searches ?? []) {
     const label = [s.professions?.name_uz ?? s.query ?? "—", s.districts?.name_uz].filter(Boolean).join(" · ");
@@ -51,8 +83,15 @@ export default async function AdminAnalytics(props: PageProps<"/admin/analytics"
           Koʻrsatish
         </Button>
       </GetForm>
-      <Card className="mb-6">
-        <h2 className="mb-3 font-semibold">Talab xaritasi</h2>
+      <Card className="mb-6 space-y-4">
+        <h2 className="font-semibold">Talab xaritasi</h2>
+        <MapView label="Tumanlar boʻyicha talab xaritasi" height={380} items={demandItems} />
+        <p className="text-xs text-slate-500">
+          Doira hajmi — ochiq vakansiyalar soni; rang — talab/taklif:{" "}
+          <span style={{ color: demandColor(2) }}>● yuqori talab</span> ·{" "}
+          <span style={{ color: demandColor(1) }}>● muvozanat</span> ·{" "}
+          <span style={{ color: demandColor(0.3) }}>● kadr yetarli</span>
+        </p>
         <DemandTable rows={demand ?? []} />
       </Card>
       <Card>

@@ -8,25 +8,25 @@ import { withdrawApplicationAction } from "@/features/applications/actions";
 import { listCandidateApplications } from "@/features/applications/queries";
 import { PIPELINE, STATUS_TONE, candidateCanWithdraw } from "@/features/applications/status";
 import { ReviewForm } from "@/features/reviews/components/review-form";
-import { APPLICATION_STATUS_LABELS } from "@/lib/i18n/uz";
-import { cn, formatSalary, timeAgo } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
+import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Arizalarim", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("applications.myTitle"), robots: { index: false } };
+}
 
 export default async function MyApplicationsPage() {
   const user = await requireJobSeeker("/dashboard/applications");
-  const applications = await listCandidateApplications(user.id);
+  const [applications, { t, d, f }] = await Promise.all([listCandidateApplications(user.id), getI18n()]);
   return (
     <>
-      <PageHeader
-        title="Arizalarim"
-        description="Har bir ariza holati: yuborildi → koʻrildi → saralandi → suhbat → taklif → ishga olindi."
-      />
+      <PageHeader title={t("applications.myTitle")} description={t("applications.myIntro")} />
       {applications.length === 0 ? (
         <EmptyState
-          title="Hali ariza yubormagansiz"
-          description="Hududingizdagi mos vakansiyalarni toping."
-          action={<ButtonLink href="/jobs">Ish qidirish</ButtonLink>}
+          title={t("applications.none")}
+          description={t("applications.noneText")}
+          action={<ButtonLink href="/jobs">{t("applications.findJobs")}</ButtonLink>}
         />
       ) : (
         <div className="space-y-3">
@@ -40,21 +40,21 @@ export default async function MyApplicationsPage() {
                       {a.vacancies?.title}
                     </Link>
                     <p className="text-sm text-slate-600">
-                      {a.vacancies?.companies?.name} · {a.vacancies?.districts?.name_uz ?? "Masofaviy"} ·{" "}
-                      {formatSalary(a.vacancies?.salary_min, a.vacancies?.salary_max, a.vacancies?.salary_type)}
+                      {a.vacancies?.companies?.name} · {a.vacancies?.districts?.name_uz ?? t("common.remote")} ·{" "}
+                      {f.salary(a.vacancies?.salary_min, a.vacancies?.salary_max, a.vacancies?.salary_type)}
                     </p>
                     <p className="text-xs text-slate-500">
-                      Yuborildi: {timeAgo(a.created_at)} · Yangilandi: {timeAgo(a.updated_at)}
+                      {t("applications.sentUpdated", { sent: f.timeAgo(a.created_at), updated: f.timeAgo(a.updated_at) })}
                     </p>
                   </div>
-                  <Badge tone={STATUS_TONE[a.status]}>{APPLICATION_STATUS_LABELS[a.status]}</Badge>
+                  <Badge tone={STATUS_TONE[a.status]}>{d.enums.applicationStatus[a.status]}</Badge>
                 </div>
                 {step >= 0 ? (
-                  <ol className="flex gap-1" aria-label="Ariza bosqichlari">
+                  <ol className="flex gap-1" aria-label={t("applications.stages")}>
                     {PIPELINE.map((s, i) => (
                       <li
                         key={s}
-                        title={APPLICATION_STATUS_LABELS[s]}
+                        title={d.enums.applicationStatus[s]}
                         className={cn("h-1.5 flex-1 rounded", i <= step ? "bg-brand-500" : "bg-slate-200")}
                       />
                     ))}
@@ -63,15 +63,15 @@ export default async function MyApplicationsPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   {candidateCanWithdraw(a.status) ? (
                     <ConfirmButton
-                      confirmText="Arizani qaytarib olasizmi?"
+                      confirmText={t("applications.withdrawConfirm")}
                       onConfirm={withdrawApplicationAction.bind(null, a.id)}
                     >
-                      Arizani qaytarib olish
+                      {t("applications.withdraw")}
                     </ConfirmButton>
                   ) : null}
                 </div>
                 {a.status === "hired" && !(a.reviews ?? []).some((r) => r.reviewer_id === user.id) ? (
-                  <ReviewForm applicationId={a.id} label="Ish beruvchi haqida sharh qoldiring" />
+                  <ReviewForm applicationId={a.id} label={t("applications.reviewEmployer")} />
                 ) : null}
               </Card>
             );

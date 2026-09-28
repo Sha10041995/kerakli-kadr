@@ -16,6 +16,18 @@ export function verificationLevel(f: VerificationFlags): 0 | 1 | 2 | 3 | 4 {
   return 0;
 }
 
+export type VerificationBadge = "phone" | "identity" | "certificate" | "company";
+
+/** Earned badges; label with `candidate.badge.<kind>`. */
+export function verificationBadgeKinds(f: VerificationFlags): VerificationBadge[] {
+  const out: VerificationBadge[] = [];
+  if (f.phoneVerified) out.push("phone");
+  if (f.identityVerified) out.push("identity");
+  if (f.certificateVerified) out.push("certificate");
+  if (f.companyVerified) out.push("company");
+  return out;
+}
+
 export function verificationBadges(f: VerificationFlags): string[] {
   const out: string[] = [];
   if (f.phoneVerified) out.push("Telefon tasdiqlangan");

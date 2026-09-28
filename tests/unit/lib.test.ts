@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { analyzeMessage } from "@/features/messaging/moderation";
 import { toUserMessage } from "@/lib/errors";
+import { getDictionary } from "@/lib/i18n/dictionary";
+import { createTranslator } from "@/lib/i18n/translate";
 import { sniffMime, validateUpload, objectPath } from "@/lib/files";
 import { approximatePoint, haversineKm, isInUzbekistan } from "@/lib/geo";
 import { MemoryRateLimitStore, rateLimit } from "@/lib/rate-limit";
@@ -84,11 +86,19 @@ describe("rate limiter", () => {
 });
 
 describe("error mapping", () => {
-  it("maps database errors to Uzbek messages and hides internals", () => {
-    expect(toUserMessage({ message: "VACANCY_LIMIT_REACHED" })).toMatch(/limit/);
-    expect(toUserMessage({ message: "new row violates row-level security policy for table x" })).toMatch(/ruxsat/);
-    expect(toUserMessage({ message: 'relation "secret_table" does not exist' })).not.toMatch(/secret/);
-    expect(toUserMessage(null)).toMatch(/Xatolik/);
+  it("maps database errors to translatable keys and hides internals", () => {
+    expect(toUserMessage({ message: "VACANCY_LIMIT_REACHED" })).toBe("errors.VACANCY_LIMIT_REACHED");
+    expect(toUserMessage({ message: "CONVERSATION_NOT_ALLOWED" })).toBe("errors.CONVERSATION_NOT_ALLOWED");
+    expect(toUserMessage({ message: "new row violates row-level security policy for table x" })).toBe("errors.NOT_ALLOWED");
+    expect(toUserMessage({ message: 'relation "secret_table" does not exist' })).toBe("errors.generic");
+    expect(toUserMessage(null)).toBe("errors.generic");
+  });
+
+  it("every error key resolves to Uzbek text", () => {
+    const { tr } = createTranslator(getDictionary("uz"));
+    expect(tr(toUserMessage({ message: "VACANCY_LIMIT_REACHED" }))).toMatch(/limit/);
+    expect(tr(toUserMessage({ message: "new row violates row-level security policy" }))).toMatch(/ruxsat/i);
+    expect(tr(toUserMessage(null))).toMatch(/Xatolik/);
   });
 });
 

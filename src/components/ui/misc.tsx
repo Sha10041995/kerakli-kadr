@@ -131,10 +131,4 @@ export function Stat({ label, value, hint }: { label: string; value: ReactNode; 
   );
 }
 
-export function DemoBadge() {
-  return (
-    <Badge tone="warning" title="Namuna (demo) maʼlumot">
-      DEMO
-    </Badge>
-  );
-}
+export { DemoBadge } from "./demo-badge";

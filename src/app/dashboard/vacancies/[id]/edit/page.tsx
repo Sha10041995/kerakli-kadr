@@ -7,23 +7,28 @@ import { getRegions } from "@/features/locations/queries";
 import { VacancyForm } from "@/features/vacancies/components/vacancy-form";
 import { vacancyToInput } from "@/features/vacancies/defaults";
 import { getVacancy } from "@/features/vacancies/queries";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: "Vakansiyani tahrirlash", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("employer.editTitle"), robots: { index: false } };
+}
 
 export default async function EditVacancyPage(props: PageProps<"/dashboard/vacancies/[id]/edit">) {
   const { id } = await props.params;
   const user = await requireEmployer(`/dashboard/vacancies/${id}/edit`);
   const vacancy = await getVacancy(id);
   if (!vacancy || vacancy.company_id !== user.companyId) notFound();
-  const [regions, catalog, skills, professionSkills] = await Promise.all([
+  const [regions, catalog, skills, professionSkills, { t }] = await Promise.all([
     getRegions(),
     getCatalog(),
     getSkills(),
     getProfessionSkillsMap(),
+    getI18n(),
   ]);
   return (
     <>
-      <PageHeader title="Vakansiyani tahrirlash" description={vacancy.title} />
+      <PageHeader title={t("employer.editTitle")} description={vacancy.title} />
       <VacancyForm
         id={id}
         defaults={vacancyToInput(vacancy)}

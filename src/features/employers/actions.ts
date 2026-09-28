@@ -10,11 +10,11 @@ import { companySchema } from "@/validations/company";
 
 export async function saveCompanyAction(input: unknown): Promise<ActionResult<{ id: string }>> {
   const parsed = companySchema.safeParse(input);
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub;
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   const d = parsed.data;
 
   const values = {
@@ -44,7 +44,7 @@ export async function saveCompanyAction(input: unknown): Promise<ActionResult<{ 
     const { error } = await supabase.from("companies").update(values).eq("id", existing.company_id);
     if (error) return fail(toUserMessage(error));
     revalidatePath("/dashboard", "layout");
-    return { ok: true, data: { id: existing.company_id }, message: "Maʼlumotlar saqlandi" };
+    return { ok: true, data: { id: existing.company_id }, message: "success.dataSaved" };
   }
 
   const slug = `${slugify(d.name) || "kompaniya"}-${globalThis.crypto.randomUUID().slice(0, 6)}`;
@@ -55,13 +55,13 @@ export async function saveCompanyAction(input: unknown): Promise<ActionResult<{ 
     .single();
   if (error) return fail(toUserMessage(error));
   revalidatePath("/dashboard", "layout");
-  return { ok: true, data: { id: data.id }, message: "Kompaniya yaratildi" };
+  return { ok: true, data: { id: data.id }, message: "success.companyCreated" };
 }
 
 export async function uploadCompanyLogoAction(formData: FormData): Promise<ActionResult> {
   const file = formData.get("file");
   const companyId = String(formData.get("companyId") ?? "");
-  if (!(file instanceof File) || file.size === 0) return fail("Rasm tanlang");
+  if (!(file instanceof File) || file.size === 0) return fail("errors.selectImage");
   const supabase = await createClient();
   const up = await uploadFile("company-logos", file);
   if (!up.ok) return fail(up.error);
@@ -71,7 +71,7 @@ export async function uploadCompanyLogoAction(formData: FormData): Promise<Actio
     .update({ logo_url: up.publicUrl }, { count: "exact" })
     .eq("id", companyId);
   if (error) return fail(toUserMessage(error));
-  if (!count) return fail("Ruxsat yoʻq");
+  if (!count) return fail("errors.forbidden");
   revalidatePath("/dashboard/company");
-  return { ok: true, message: "Logo yangilandi" };
+  return { ok: true, message: "success.logoUpdated" };
 }

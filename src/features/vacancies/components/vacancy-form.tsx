@@ -9,7 +9,8 @@ import { Checkbox, Field, FieldError, Input, Select, Textarea } from "@/componen
 import { Alert, Card } from "@/components/ui/misc";
 import { LocationPicker } from "@/features/locations/components/location-picker";
 import { saveVacancyAction } from "@/features/vacancies/actions";
-import { EDUCATION_LABELS, EMPLOYMENT_TYPE_LABELS, SALARY_TYPE_LABELS, WORK_SCHEDULE_LABELS, options } from "@/lib/i18n/uz";
+import { useI18n } from "@/lib/i18n/client";
+import { enumOptions } from "@/lib/i18n/dictionary";
 import { cn } from "@/lib/utils";
 import { vacancySchema, type VacancyData, type VacancyInput } from "@/validations/vacancy";
 
@@ -26,6 +27,7 @@ const num = { setValueAs: (v: unknown) => (v === "" || v === null || v === undef
 
 export function VacancyForm({ id, defaults, regions, catalog, skills, professionSkills }: Props) {
   const router = useRouter();
+  const { t, tr, d } = useI18n();
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const { register, handleSubmit, setValue, control, formState, setError } = useForm<VacancyInput, unknown, VacancyData>({
     resolver: zodResolver(vacancySchema),
@@ -64,7 +66,7 @@ export function VacancyForm({ id, defaults, regions, catalog, skills, profession
       const res = await saveVacancyAction({ ...values, publish }, id);
       if (!res.ok) {
         Object.entries(res.fieldErrors ?? {}).forEach(([k, v]) => setError(k as keyof VacancyInput, { message: v?.[0] }));
-        return setStatus({ ok: false, text: res.error });
+        return setStatus({ ok: false, text: tr(res.error) });
       }
       router.push(`/dashboard/vacancies/${res.data?.id}?saved=${res.data?.status}`);
       router.refresh();
@@ -73,14 +75,14 @@ export function VacancyForm({ id, defaults, regions, catalog, skills, profession
   return (
     <form onSubmit={submit(true)} className="space-y-6" noValidate>
       <Card className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">Asosiy maʼlumotlar</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{t("vacancyForm.basics")}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Kasb" htmlFor="professionId" error={errors.professionId?.message}>
+          <Field label={t("vacancyForm.profession")} htmlFor="professionId" error={errors.professionId?.message}>
             <Select
               id="professionId"
               {...register("professionId", { ...num, onChange: (e) => onProfessionChange(e.target.value) })}
             >
-              <option value="">Tanlang</option>
+              <option value="">{t("common.choose")}</option>
               {catalog.map((c) => (
                 <optgroup key={c.id} label={c.name}>
                   {c.professions.map((p) => (
@@ -92,58 +94,58 @@ export function VacancyForm({ id, defaults, regions, catalog, skills, profession
               ))}
             </Select>
           </Field>
-          <Field label="Sarlavha" htmlFor="title" error={errors.title?.message} hint="Masalan: “1 kunlik payvandchi kerak”">
+          <Field label={t("vacancyForm.title")} htmlFor="title" error={errors.title?.message} hint={t("vacancyForm.titleHint")}>
             <Input id="title" maxLength={160} {...register("title")} />
           </Field>
           <Field
-            label="Tavsif"
+            label={t("vacancyForm.description")}
             htmlFor="description"
             error={errors.description?.message}
             className="sm:col-span-2"
-            hint="Vazifalar, talablar, sharoitlar"
+            hint={t("vacancyForm.descriptionHint")}
           >
             <Textarea id="description" rows={7} maxLength={10000} {...register("description")} />
           </Field>
-          <Field label="Ish turi" htmlFor="employmentType" error={errors.employmentType?.message}>
+          <Field label={t("vacancyForm.employmentType")} htmlFor="employmentType" error={errors.employmentType?.message}>
             <Select id="employmentType" {...register("employmentType")}>
-              {options(EMPLOYMENT_TYPE_LABELS).map((o) => (
+              {enumOptions(d.enums.employmentType).map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
               ))}
             </Select>
           </Field>
-          <Field label="Ish jadvali" htmlFor="workSchedule" error={errors.workSchedule?.message}>
+          <Field label={t("vacancyForm.schedule")} htmlFor="workSchedule" error={errors.workSchedule?.message}>
             <Select id="workSchedule" {...register("workSchedule")}>
-              {options(WORK_SCHEDULE_LABELS).map((o) => (
+              {enumOptions(d.enums.workSchedule).map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
               ))}
             </Select>
           </Field>
-          <Field label="Talab qilinadigan tajriba (yil)" htmlFor="experienceMinYears" error={errors.experienceMinYears?.message}>
+          <Field label={t("vacancyForm.experience")} htmlFor="experienceMinYears" error={errors.experienceMinYears?.message}>
             <Input id="experienceMinYears" type="number" min={0} max={50} step="0.5" {...register("experienceMinYears", num)} />
           </Field>
-          <Field label="Maʼlumot" htmlFor="educationLevel" error={errors.educationLevel?.message}>
+          <Field label={t("vacancyForm.education")} htmlFor="educationLevel" error={errors.educationLevel?.message}>
             <Select id="educationLevel" {...register("educationLevel", { setValueAs: (v) => (v === "" ? null : v) })}>
-              <option value="">Muhim emas</option>
-              {options(EDUCATION_LABELS).map((o) => (
+              <option value="">{t("vacancyForm.notImportant")}</option>
+              {enumOptions(d.enums.education).map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
               ))}
             </Select>
           </Field>
-          <Field label="Nechta xodim kerak" htmlFor="positionsCount" error={errors.positionsCount?.message}>
+          <Field label={t("vacancyForm.positions")} htmlFor="positionsCount" error={errors.positionsCount?.message}>
             <Input id="positionsCount" type="number" min={1} max={1000} {...register("positionsCount", num)} />
           </Field>
-          <Field label="Ariza qabul qilish muddati" htmlFor="applicationDeadline" error={errors.applicationDeadline?.message}>
+          <Field label={t("vacancyForm.deadline")} htmlFor="applicationDeadline" error={errors.applicationDeadline?.message}>
             <Input id="applicationDeadline" type="date" {...register("applicationDeadline")} />
           </Field>
         </div>
         <div>
-          <p className="mb-2 text-sm font-medium text-slate-700">Talab qilinadigan koʻnikmalar</p>
+          <p className="mb-2 text-sm font-medium text-slate-700">{t("vacancyForm.skills")}</p>
           <div className="flex flex-wrap gap-2">
             {visibleSkills.map((s) => {
               const on = selectedSkills?.includes(s.id);
@@ -168,11 +170,11 @@ export function VacancyForm({ id, defaults, regions, catalog, skills, profession
       </Card>
 
       <Card className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">Maosh</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{t("vacancyForm.salary")}</h2>
         <div className="grid gap-4 sm:grid-cols-4">
-          <Field label="Turi" htmlFor="salaryType" error={errors.salaryType?.message}>
+          <Field label={t("vacancyForm.salaryType")} htmlFor="salaryType" error={errors.salaryType?.message}>
             <Select id="salaryType" {...register("salaryType")}>
-              {options(SALARY_TYPE_LABELS).map((o) => (
+              {enumOptions(d.enums.salaryType).map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
@@ -181,15 +183,15 @@ export function VacancyForm({ id, defaults, regions, catalog, skills, profession
           </Field>
           {salaryType !== "negotiable" ? (
             <>
-              <Field label="dan" htmlFor="salaryMin" error={errors.salaryMin?.message}>
+              <Field label={t("vacancyForm.from")} htmlFor="salaryMin" error={errors.salaryMin?.message}>
                 <Input id="salaryMin" type="number" min={0} step={10000} {...register("salaryMin", num)} />
               </Field>
-              <Field label="gacha" htmlFor="salaryMax" error={errors.salaryMax?.message}>
+              <Field label={t("vacancyForm.to")} htmlFor="salaryMax" error={errors.salaryMax?.message}>
                 <Input id="salaryMax" type="number" min={0} step={10000} {...register("salaryMax", num)} />
               </Field>
-              <Field label="Valyuta" htmlFor="salaryCurrency" error={errors.salaryCurrency?.message}>
+              <Field label={t("vacancyForm.currency")} htmlFor="salaryCurrency" error={errors.salaryCurrency?.message}>
                 <Select id="salaryCurrency" {...register("salaryCurrency")}>
-                  <option value="UZS">soʻm</option>
+                  <option value="UZS">{t("vacancyForm.som")}</option>
                   <option value="USD">USD</option>
                 </Select>
               </Field>
@@ -199,7 +201,7 @@ export function VacancyForm({ id, defaults, regions, catalog, skills, profession
       </Card>
 
       <Card className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">Ish joyi</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{t("vacancyForm.workplace")}</h2>
         <LocationPicker
           regions={regions}
           value={{
@@ -218,25 +220,25 @@ export function VacancyForm({ id, defaults, regions, catalog, skills, profession
             setValue("lng", null);
           }}
         />
-        <Field label="Aniq manzil yoki moʻljal (ixtiyoriy)" htmlFor="addressText" error={errors.addressText?.message}>
+        <Field label={t("vacancyForm.address")} htmlFor="addressText" error={errors.addressText?.message}>
           <Input id="addressText" maxLength={300} {...register("addressText")} />
         </Field>
         <div className="grid gap-2 sm:grid-cols-3">
-          <Checkbox label="Shoshilinch" {...register("urgent")} />
-          <Checkbox label="Masofadan ishlash mumkin" {...register("remoteAllowed")} />
-          <Checkbox label="Transport beriladi" {...register("transportProvided")} />
-          <Checkbox label="Turar joy beriladi" {...register("accommodationProvided")} />
-          <Checkbox label="Ovqat beriladi" {...register("mealProvided")} />
+          <Checkbox label={t("vacancyForm.urgent")} {...register("urgent")} />
+          <Checkbox label={t("vacancyForm.remote")} {...register("remoteAllowed")} />
+          <Checkbox label={t("vacancyForm.transport")} {...register("transportProvided")} />
+          <Checkbox label={t("vacancyForm.housing")} {...register("accommodationProvided")} />
+          <Checkbox label={t("vacancyForm.meal")} {...register("mealProvided")} />
         </div>
       </Card>
 
       {status ? <Alert tone={status.ok ? "success" : "danger"}>{status.text}</Alert> : null}
       <div className="flex flex-wrap gap-2">
         <Button type="submit" size="lg" disabled={formState.isSubmitting}>
-          {formState.isSubmitting ? "Saqlanmoqda…" : "Eʼlon qilish"}
+          {formState.isSubmitting ? t("common.saving") : t("vacancyForm.publish")}
         </Button>
         <Button type="button" variant="outline" size="lg" disabled={formState.isSubmitting} onClick={submit(false)}>
-          Qoralama sifatida saqlash
+          {t("vacancyForm.saveDraft")}
         </Button>
       </div>
     </form>

@@ -11,7 +11,9 @@
 3. Auth: Email provider yoqilgan, “Confirm email” yoqilgan; Site URL = `https://kadrtop.uz`;
    Redirect URL: `https://kadrtop.uz/auth/callback`.
 4. Realtime: `messages` jadvali `supabase_realtime` publikatsiyasida (migratsiya avtomatik qoʻshadi).
-5. pg_cron: `expire_vacancies()` ni soatlik rejalashtiring (docs/DATABASE.md).
+5. Rejalashtirilgan ishlar: Vercel'da `vercel.json` cron (`5 * * * *`) `/api/cron` ni chaqiradi
+   (`Authorization: Bearer $CRON_SECRET`) — muddati tugagan vakansiyalar, eslatmalar va email/Telegram yetkazish.
+   Boshqa hostingda shu URL'ni tashqi cron bilan soatlik chaqiring (yoki pg_cron, docs/DATABASE.md).
 6. Birinchi super admin: roʻyxatdan oʻting, soʻng SQL editor'da
    `insert into user_roles (user_id, role) values ('<uuid>', 'super_admin'), ('<uuid>', 'admin');`
 7. Rasmiy hududlar datasetini import qiling: `scripts/import-locations.mjs`.
@@ -27,7 +29,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...        # faqat server
 PAYMENT_PROVIDER=<provayder>          # mock productionda avtomatik oʻchadi
 NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=... # koʻp instansli self-hostingda
+CRON_SECRET=...                       # /api/cron uchun (uzun tasodifiy satr)
+RESEND_API_KEY=...                    # ixtiyoriy: email bildirishnomalar
+EMAIL_FROM="KADR TOP UZ <noreply@kadrtop.uz>"
+TELEGRAM_BOT_TOKEN=...                # ixtiyoriy: Telegram bot
+TELEGRAM_BOT_USERNAME=...
+TELEGRAM_WEBHOOK_SECRET=...           # setWebhook(secret_token=...) bilan bir xil
 ```
+
+Telegram webhook: `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://kadrtop.uz/api/telegram/webhook&secret_token=<SECRET>`.
 
 Build: `npm ci && npm run build && npm start` (Node ≥ 20.9).
 

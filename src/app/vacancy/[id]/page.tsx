@@ -12,15 +12,14 @@ import { ReportButton } from "@/features/reports/components/report-button";
 import { ViewTracker } from "@/features/vacancies/components/view-tracker";
 import { getVacancy } from "@/features/vacancies/queries";
 import { companyResponseRate } from "@/features/reputation";
-import { EDUCATION_LABELS, EMPLOYMENT_TYPE_LABELS, WORK_SCHEDULE_LABELS } from "@/lib/i18n/uz";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { jobPostingJsonLd, jsonLdScript } from "@/lib/seo";
-import { formatDate, formatSalary, timeAgo } from "@/lib/utils";
 
 export async function generateMetadata(props: PageProps<"/vacancy/[id]">): Promise<Metadata> {
   const { id } = await props.params;
-  const v = await getVacancy(id);
-  if (!v) return { title: "Vakansiya topilmadi", robots: { index: false } };
+  const [v, { t }] = await Promise.all([getVacancy(id), getI18n()]);
+  if (!v) return { title: t("vacancy.notFound"), robots: { index: false } };
   const place = v.districts?.name_uz ?? v.regions?.name_uz ?? "";
   return {
     title: `${v.title}${place ? ` — ${place}` : ""}`,
@@ -33,7 +32,7 @@ export async function generateMetadata(props: PageProps<"/vacancy/[id]">): Promi
 
 export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
   const { id } = await props.params;
-  const [v, user, requestHeaders] = await Promise.all([getVacancy(id), getCurrentUser(), headers()]);
+  const [v, user, requestHeaders, { t, d, f }] = await Promise.all([getVacancy(id), getCurrentUser(), headers(), getI18n()]);
   if (!v) notFound();
   const responseRate = await companyResponseRate(v.company_id);
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
@@ -85,9 +84,9 @@ export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
         <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
       ) : null}
       {v.status === "active" ? <ViewTracker vacancyId={v.id} /> : null}
-      <nav aria-label="Yoʻl" className="mb-4 text-sm text-slate-500">
+      <nav aria-label={t("nav.breadcrumb")} className="mb-4 text-sm text-slate-500">
         <Link href="/jobs" className="hover:underline">
-          Ishlar
+          {t("nav.jobs")}
         </Link>
         {v.regions ? (
           <>
@@ -118,56 +117,58 @@ export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
               ) : null}
               {v.urgent ? (
                 <Badge tone="danger">
-                  <BoltIcon size={12} /> Shoshilinch
+                  <BoltIcon size={12} /> {t("common.urgent")}
                 </Badge>
               ) : null}
-              {v.status !== "active" ? <Badge tone="neutral">Faol emas</Badge> : null}
+              {v.status !== "active" ? <Badge tone="neutral">{t("common.inactive")}</Badge> : null}
             </div>
             <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{v.title}</h1>
             <p className="text-brand-700 text-xl font-semibold">
-              {formatSalary(v.salary_min, v.salary_max, v.salary_type, v.salary_currency)}
+              {f.salary(v.salary_min, v.salary_max, v.salary_type, v.salary_currency)}
             </p>
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
               <div className="flex gap-2">
                 <PinIcon size={18} className="text-slate-400" />
                 <span>
-                  <dt className="sr-only">Manzil</dt>
-                  <dd>{place || "Masofaviy ish"}</dd>
+                  <dt className="sr-only">{t("vacancy.location")}</dt>
+                  <dd>{place || t("common.remoteJob")}</dd>
                 </span>
               </div>
               <div>
-                <dt className="inline text-slate-500">Ish turi: </dt>
-                <dd className="inline">{EMPLOYMENT_TYPE_LABELS[v.employment_type]}</dd>
+                <dt className="inline text-slate-500">{t("vacancy.employmentType")} </dt>
+                <dd className="inline">{d.enums.employmentType[v.employment_type]}</dd>
               </div>
               <div>
-                <dt className="inline text-slate-500">Jadval: </dt>
-                <dd className="inline">{WORK_SCHEDULE_LABELS[v.work_schedule]}</dd>
+                <dt className="inline text-slate-500">{t("vacancy.schedule")} </dt>
+                <dd className="inline">{d.enums.workSchedule[v.work_schedule]}</dd>
               </div>
               <div>
-                <dt className="inline text-slate-500">Tajriba: </dt>
+                <dt className="inline text-slate-500">{t("vacancy.experience")} </dt>
                 <dd className="inline">
-                  {Number(v.experience_min_years) > 0 ? `${v.experience_min_years}+ yil` : "Talab qilinmaydi"}
+                  {Number(v.experience_min_years) > 0
+                    ? t("common.yearsPlus", { n: Number(v.experience_min_years) })
+                    : t("vacancy.notRequired")}
                 </dd>
               </div>
               {v.education_level ? (
                 <div>
-                  <dt className="inline text-slate-500">Maʼlumot: </dt>
-                  <dd className="inline">{EDUCATION_LABELS[v.education_level]}</dd>
+                  <dt className="inline text-slate-500">{t("vacancy.education")} </dt>
+                  <dd className="inline">{d.enums.education[v.education_level]}</dd>
                 </div>
               ) : null}
               <div>
-                <dt className="inline text-slate-500">Oʻrinlar: </dt>
-                <dd className="inline">{v.positions_count} ta</dd>
+                <dt className="inline text-slate-500">{t("vacancy.positions")} </dt>
+                <dd className="inline">{t("common.count", { n: v.positions_count })}</dd>
               </div>
               {v.application_deadline ? (
                 <div>
-                  <dt className="inline text-slate-500">Muddat: </dt>
-                  <dd className="inline">{formatDate(v.application_deadline)} gacha</dd>
+                  <dt className="inline text-slate-500">{t("vacancy.deadline")} </dt>
+                  <dd className="inline">{t("common.until", { date: f.date(v.application_deadline) })}</dd>
                 </div>
               ) : null}
               {v.professions ? (
                 <div>
-                  <dt className="inline text-slate-500">Kasb: </dt>
+                  <dt className="inline text-slate-500">{t("vacancy.profession")} </dt>
                   <dd className="inline">
                     <Link className="text-brand-700 hover:underline" href={`/jobs/${v.professions.slug}`}>
                       {v.professions.name_uz}
@@ -177,18 +178,18 @@ export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
               ) : null}
             </dl>
             <div className="flex flex-wrap gap-1.5">
-              {v.remote_allowed ? <Badge tone="info">Masofadan ishlash mumkin</Badge> : null}
-              {v.transport_provided ? <Badge>Transport beriladi</Badge> : null}
-              {v.accommodation_provided ? <Badge>Turar joy beriladi</Badge> : null}
-              {v.meal_provided ? <Badge>Ovqat beriladi</Badge> : null}
+              {v.remote_allowed ? <Badge tone="info">{t("vacancy.remoteAllowed")}</Badge> : null}
+              {v.transport_provided ? <Badge>{t("vacancy.transport")}</Badge> : null}
+              {v.accommodation_provided ? <Badge>{t("vacancy.housing")}</Badge> : null}
+              {v.meal_provided ? <Badge>{t("vacancy.meal")}</Badge> : null}
             </div>
           </Card>
           <Card>
-            <h2 className="mb-3 text-lg font-semibold text-slate-900">Tavsif</h2>
+            <h2 className="mb-3 text-lg font-semibold text-slate-900">{t("vacancy.description")}</h2>
             <div className="text-sm leading-relaxed whitespace-pre-line text-slate-700">{v.description}</div>
             {v.vacancy_skills?.length ? (
               <>
-                <h3 className="mt-6 mb-2 font-semibold text-slate-900">Koʻnikmalar</h3>
+                <h3 className="mt-6 mb-2 font-semibold text-slate-900">{t("vacancy.skills")}</h3>
                 <div className="flex flex-wrap gap-1.5">
                   {v.vacancy_skills.map((s) =>
                     s.skills ? (
@@ -201,16 +202,17 @@ export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
               </>
             ) : null}
             <p className="mt-6 text-xs text-slate-500">
-              Eʼlon qilindi: {timeAgo(v.published_at ?? v.created_at)} · {v.views_count} marta koʻrildi
+              {t("vacancy.published", { ago: f.timeAgo(v.published_at ?? v.created_at) })} ·{" "}
+              {t("common.views", { n: v.views_count })}
             </p>
           </Card>
           {v.lat != null && v.lng != null ? (
-            <LocationMap lat={v.lat} lng={v.lng} radiusKm={2} label={`Ish joyi: ${place}`} marker />
+            <LocationMap lat={v.lat} lng={v.lng} radiusKm={2} label={t("vacancy.workplace", { place })} marker />
           ) : null}
         </article>
         <aside className="space-y-4">
           <Card id="apply" className="scroll-mt-24">
-            <h2 className="mb-3 font-semibold text-slate-900">Ariza yuborish</h2>
+            <h2 className="mb-3 font-semibold text-slate-900">{t("vacancy.applyTitle")}</h2>
             <ApplyForm vacancyId={v.id} state={applyState} />
           </Card>
           {company ? (
@@ -228,19 +230,19 @@ export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
                   {company.rating_count ? (
                     <p className="flex items-center gap-1 text-sm text-amber-600">
                       <StarIcon size={14} />
-                      {Number(company.rating_avg).toFixed(1)} ({company.rating_count} sharh)
+                      {Number(company.rating_avg).toFixed(1)} ({t("common.reviewsCount", { n: company.rating_count })})
                     </p>
                   ) : (
-                    <p className="text-xs text-slate-500">{company.hires_count} ta xodim yollagan</p>
+                    <p className="text-xs text-slate-500">{t("vacancy.hired", { n: company.hires_count })}</p>
                   )}
                 </div>
               </div>
               {company.verification_status === "verified" ? (
-                <p className="mt-3 text-xs text-emerald-700">✓ Tasdiqlangan ish beruvchi</p>
+                <p className="mt-3 text-xs text-emerald-700">{t("vacancy.verifiedEmployer")}</p>
               ) : null}
               {responseRate != null ? (
                 <p className="mt-1 text-xs text-slate-600">
-                  Arizalarga javob beradi: <strong>{responseRate}%</strong>
+                  {t("vacancy.responseRate")} <strong>{responseRate}%</strong>
                 </p>
               ) : null}
             </Card>
@@ -249,9 +251,7 @@ export default async function VacancyPage(props: PageProps<"/vacancy/[id]">) {
             {user ? <FavoriteButton kind="vacancy" targetId={v.id} initial={isFavorite} /> : <span />}
             {user ? <ReportButton targetType="vacancy" targetId={v.id} /> : null}
           </div>
-          <Card className="bg-amber-50 text-xs text-amber-900">
-            Xavfsizlik: ishga olish uchun hech qachon oldindan toʻlov qilmang va karta maʼlumotlaringizni bermang.
-          </Card>
+          <Card className="bg-amber-50 text-xs text-amber-900">{t("vacancy.safety")}</Card>
         </aside>
       </div>
     </Container>

@@ -28,11 +28,11 @@ async function context() {
 
 export async function saveVacancyAction(input: unknown, id?: string): Promise<ActionResult<{ id: string; status: string }>> {
   const parsed = vacancySchema.safeParse(input);
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
-  if (id && !uuidSchema.safeParse(id).success) return fail("Notoʻgʻri soʻrov");
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
+  if (id && !uuidSchema.safeParse(id).success) return fail("errors.badRequest");
   const { supabase, userId, companyId } = await context();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
-  if (!companyId) return fail("Avval ish beruvchi profilini yarating.");
+  if (!userId) return fail("errors.loginRequired");
+  if (!companyId) return fail("errors.COMPANY_REQUIRED");
   const limit = await checkRateLimit("vacancy-write", RATE_LIMITS.write, userId);
   if (!limit.ok) return fail(toUserMessage({ message: "RATE_LIMITED" }));
 
@@ -70,7 +70,7 @@ export async function saveVacancyAction(input: unknown, id?: string): Promise<Ac
   let status: string;
   if (id) {
     const { data: current } = await supabase.from("vacancies").select("status").eq("id", id).maybeSingle();
-    if (!current) return fail("Vakansiya topilmadi");
+    if (!current) return fail("errors.vacancyNotFound");
     const nextStatus = d.publish && ["draft", "closed", "expired"].includes(current.status) ? "pending_review" : current.status;
     const { data, error } = await supabase
       .from("vacancies")
@@ -104,31 +104,31 @@ export async function saveVacancyAction(input: unknown, id?: string): Promise<Ac
   revalidatePath(`/vacancy/${vacancyId}`);
   const message =
     status === "active"
-      ? "Vakansiya eʼlon qilindi"
+      ? "success.vacancyPublished"
       : status === "pending_review"
-        ? "Vakansiya moderatsiyaga yuborildi"
-        : "Qoralama saqlandi";
+        ? "success.vacancyModeration"
+        : "success.draftSaved";
   return { ok: true, data: { id: vacancyId!, status }, message };
 }
 
 export async function setVacancyStatusAction(id: string, status: "closed" | "pending_review" | "draft"): Promise<ActionResult> {
   if (!uuidSchema.safeParse(id).success || !["closed", "pending_review", "draft"].includes(status))
-    return fail("Notoʻgʻri soʻrov");
+    return fail("errors.badRequest");
   const { supabase } = await context();
   const { error, count } = await supabase.from("vacancies").update({ status }, { count: "exact" }).eq("id", id);
   if (error) return fail(toUserMessage(error));
-  if (!count) return fail("Ruxsat yoʻq");
+  if (!count) return fail("errors.forbidden");
   revalidatePath("/dashboard/vacancies");
   revalidatePath(`/vacancy/${id}`);
   return { ok: true };
 }
 
 export async function deleteVacancyAction(id: string): Promise<ActionResult> {
-  if (!uuidSchema.safeParse(id).success) return fail("Notoʻgʻri soʻrov");
+  if (!uuidSchema.safeParse(id).success) return fail("errors.badRequest");
   const { supabase } = await context();
   const { error, count } = await supabase.from("vacancies").delete({ count: "exact" }).eq("id", id).eq("status", "draft");
   if (error) return fail(toUserMessage(error));
-  if (!count) return fail("Faqat qoralamani oʻchirish mumkin");
+  if (!count) return fail("errors.onlyDraftDelete");
   revalidatePath("/dashboard/vacancies");
   return { ok: true };
 }

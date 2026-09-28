@@ -1,7 +1,8 @@
+import { getI18n } from "@/lib/i18n/server";
 import { getMapProvider } from "@/lib/maps";
 
 /** Approximate area map (privacy-safe: no exact addresses for candidates). */
-export function LocationMap({
+export async function LocationMap({
   lat,
   lng,
   radiusKm = 3,
@@ -14,6 +15,7 @@ export function LocationMap({
   label: string;
   marker?: boolean;
 }) {
+  const { t } = await getI18n();
   const provider = getMapProvider();
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200">
@@ -31,7 +33,7 @@ export function LocationMap({
         rel="noopener noreferrer"
         className="text-brand-700 block bg-white px-3 py-2 text-xs hover:underline"
       >
-        Kattaroq xaritada ochish ↗
+        {t("cards.openLargerMap")}
       </a>
     </div>
   );

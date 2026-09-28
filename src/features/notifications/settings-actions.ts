@@ -13,21 +13,21 @@ async function userClient() {
 
 export async function saveNotificationPrefsAction(formData: FormData): Promise<ActionResult> {
   const { supabase, userId } = await userClient();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   const { error } = await supabase
     .from("profiles")
     .update({ notify_email: formData.get("notifyEmail") === "on", notify_telegram: formData.get("notifyTelegram") === "on" })
     .eq("id", userId);
   if (error) return fail(toUserMessage(error));
   revalidatePath("/dashboard/settings");
-  return { ok: true, message: "Sozlamalar saqlandi" };
+  return { ok: true, message: "success.settingsSaved" };
 }
 
 export async function createTelegramLinkAction(): Promise<ActionResult<{ url: string }>> {
   const bot = process.env.TELEGRAM_BOT_USERNAME;
-  if (!process.env.TELEGRAM_BOT_TOKEN || !bot) return fail("Telegram bot hali ulanmagan.");
+  if (!process.env.TELEGRAM_BOT_TOKEN || !bot) return fail("errors.telegramUnavailable");
   const { supabase, userId } = await userClient();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   const token = randomBytes(24).toString("base64url");
   const { error } = await supabase.from("telegram_link_tokens").insert({ token, user_id: userId });
   if (error) return fail(toUserMessage(error));
@@ -36,7 +36,7 @@ export async function createTelegramLinkAction(): Promise<ActionResult<{ url: st
 
 export async function disconnectTelegramAction(): Promise<ActionResult> {
   const { supabase, userId } = await userClient();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   const { error } = await supabase.from("profiles").update({ telegram_chat_id: null }).eq("id", userId);
   if (error) return fail(toUserMessage(error));
   revalidatePath("/dashboard/settings");

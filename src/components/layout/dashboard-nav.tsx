@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 export function DashboardNav({ items }: { items: { href: string; label: string }[] }) {
   const pathname = usePathname();
+  const { t } = useI18n();
   return (
     <nav
-      aria-label="Kabinet menyusi"
+      aria-label={t("nav.dashboardMenu")}
       className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0"
     >
       {items.map((item) => {

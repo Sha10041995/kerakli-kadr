@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/errors";
+import { useI18n } from "@/lib/i18n/client";
 
 /**
  * FormData-based form bound to a server action returning ActionResult.
@@ -23,6 +24,7 @@ export function ActionForm({
 }) {
   const ref = useRef<HTMLFormElement>(null);
   const router = useRouter();
+  const { tr } = useI18n();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   return (
@@ -35,12 +37,12 @@ export function ActionForm({
         start(async () => {
           const res = await action(fd);
           if (res.ok) {
-            setMsg(successMessage || res.message ? { ok: true, text: res.message ?? successMessage ?? "" } : null);
+            setMsg(successMessage || res.message ? { ok: true, text: tr(res.message ?? successMessage) } : null);
             if (resetOnSuccess) ref.current?.reset();
             router.refresh();
           } else {
             const firstField = Object.values(res.fieldErrors ?? {})[0]?.[0];
-            setMsg({ ok: false, text: firstField ? `${res.error}: ${firstField}` : res.error });
+            setMsg({ ok: false, text: firstField ? `${tr(res.error)}: ${tr(firstField)}` : tr(res.error) });
           }
         });
       }}
@@ -60,7 +62,7 @@ export function ActionForm({
 export function ConfirmButton({
   onConfirm,
   children,
-  confirmText = "Ishonchingiz komilmi?",
+  confirmText,
   className,
 }: {
   onConfirm: () => Promise<ActionResult | ActionResult<unknown>>;
@@ -69,6 +71,7 @@ export function ConfirmButton({
   className?: string;
 }) {
   const router = useRouter();
+  const { t, tr } = useI18n();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   return (
@@ -78,10 +81,10 @@ export function ConfirmButton({
         disabled={pending}
         className={className ?? "text-sm text-red-600 hover:underline disabled:opacity-50"}
         onClick={() => {
-          if (!window.confirm(confirmText)) return;
+          if (!window.confirm(confirmText ?? t("common.confirm"))) return;
           start(async () => {
             const res = await onConfirm();
-            if (!res.ok) setError(res.error);
+            if (!res.ok) setError(tr(res.error));
             else router.refresh();
           });
         }}

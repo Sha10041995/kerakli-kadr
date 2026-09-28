@@ -6,25 +6,29 @@ import { requireUser } from "@/features/auth/session";
 import { getConversation } from "@/features/messaging/queries";
 import { ChatThread } from "@/features/messaging/components/chat-thread";
 import { ReportButton } from "@/features/reports/components/report-button";
-import { displayName } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: "Suhbat", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("messaging.conversation"), robots: { index: false } };
+}
 
 export default async function ConversationPage(props: PageProps<"/messages/[id]">) {
   const { id } = await props.params;
   const user = await requireUser(`/messages/${id}`);
   const data = await getConversation(id, user.id);
   if (!data) notFound();
+  const { t, f } = await getI18n();
   return (
     <Container className="py-4 sm:py-6">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link href="/messages" className="text-sm text-slate-500 hover:underline">
-            ← Xabarlar
+            {t("messaging.back")}
           </Link>
           <Avatar src={data.other?.avatar_url} first={data.other?.first_name} last={data.other?.last_name} size={36} />
           <div>
-            <p className="font-semibold text-slate-900">{displayName(data.other?.first_name, data.other?.last_name, true)}</p>
+            <p className="font-semibold text-slate-900">{f.name(data.other?.first_name, data.other?.last_name, true)}</p>
             {data.conv.vacancies ? (
               <Link href={`/vacancy/${data.conv.vacancies.id}`} className="text-brand-700 text-xs hover:underline">
                 {data.conv.vacancies.title}

@@ -2,12 +2,12 @@ import Link from "next/link";
 import { Avatar, Badge, Card } from "@/components/ui/misc";
 import { buttonClass } from "@/components/ui/button";
 import { PinIcon, ShieldIcon, StarIcon } from "@/components/ui/icons";
-import { AVAILABILITY_LABELS } from "@/lib/i18n/uz";
-import { displayName, formatDistance, formatSalary } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
 import type { CandidateSearchRow } from "@/features/candidates/queries";
 
-export function CandidateCard({ c }: { c: CandidateSearchRow }) {
-  const distance = formatDistance(c.distance_km);
+export async function CandidateCard({ c }: { c: CandidateSearchRow }) {
+  const { t, d, f } = await getI18n();
+  const distance = f.distance(c.distance_km);
   const place = [c.settlement_name, c.district_name].filter(Boolean).join(", ") || c.region_name;
   return (
     <Card className={c.is_premium ? "border-amber-300 ring-1 ring-amber-200" : undefined}>
@@ -17,17 +17,20 @@ export function CandidateCard({ c }: { c: CandidateSearchRow }) {
           <div className="flex flex-wrap items-center gap-1.5">
             <h3 className="text-base font-semibold text-slate-900">
               <Link href={`/candidate/${c.id}`} className="hover:text-brand-700 hover:underline">
-                {displayName(c.first_name, c.last_initial, true)}
+                {f.name(c.first_name, c.last_initial, true)}
               </Link>
             </h3>
             {c.is_premium ? <Badge tone="premium">Premium</Badge> : null}
             {c.phone_verified || c.identity_verified ? (
-              <span title={c.identity_verified ? "Shaxs tasdiqlangan" : "Telefon tasdiqlangan"} className="text-brand-600">
+              <span
+                title={c.identity_verified ? t("cards.identityVerified") : t("cards.phoneVerified")}
+                className="text-brand-600"
+              >
                 <ShieldIcon size={16} />
               </span>
             ) : null}
           </div>
-          <p className="text-brand-700 text-sm font-medium">{c.profession_name ?? "Kasb koʻrsatilmagan"}</p>
+          <p className="text-brand-700 text-sm font-medium">{c.profession_name ?? t("cards.noProfession")}</p>
           {c.headline ? <p className="truncate text-sm text-slate-600">{c.headline}</p> : null}
         </div>
       </div>
@@ -39,7 +42,7 @@ export function CandidateCard({ c }: { c: CandidateSearchRow }) {
           </span>
         ) : null}
         {distance ? <span className="text-brand-700 font-medium">~{distance}</span> : null}
-        <span>Tajriba: {Number(c.experience_years ?? 0)} yil</span>
+        <span>{t("cards.experience", { n: Number(c.experience_years ?? 0) })}</span>
         {c.rating_count ? (
           <span className="inline-flex items-center gap-1 text-amber-600">
             <StarIcon size={14} /> {Number(c.rating_avg).toFixed(1)} ({c.rating_count})
@@ -48,7 +51,7 @@ export function CandidateCard({ c }: { c: CandidateSearchRow }) {
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {c.availability ? (
-          <Badge tone={c.availability === "immediately" ? "success" : "neutral"}>{AVAILABILITY_LABELS[c.availability]}</Badge>
+          <Badge tone={c.availability === "immediately" ? "success" : "neutral"}>{d.enums.availability[c.availability]}</Badge>
         ) : null}
         {(c.skills ?? []).slice(0, 4).map((s) => (
           <Badge key={s}>{s}</Badge>
@@ -56,14 +59,14 @@ export function CandidateCard({ c }: { c: CandidateSearchRow }) {
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-medium text-slate-900">
-          {formatSalary(c.expected_salary_min, c.expected_salary_max, c.salary_type)}
+          {f.salary(c.expected_salary_min, c.expected_salary_max, c.salary_type)}
         </span>
         <div className="flex gap-2">
           <Link href={`/candidate/${c.id}`} className={buttonClass("outline", "sm")}>
-            Profilni koʻrish
+            {t("cards.viewProfile")}
           </Link>
           <Link href={`/candidate/${c.id}#contact`} className={buttonClass("primary", "sm")}>
-            Bogʻlanish
+            {t("cards.contact")}
           </Link>
         </div>
       </div>

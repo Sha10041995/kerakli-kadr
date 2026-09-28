@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { checkoutAction } from "@/features/payments/actions";
+import { useI18n } from "@/lib/i18n/client";
 
 export function CheckoutButton({
   purpose,
@@ -19,6 +20,7 @@ export function CheckoutButton({
   variant?: "primary" | "outline" | "accent";
 }) {
   const router = useRouter();
+  const { tr } = useI18n();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   return (
@@ -32,7 +34,7 @@ export function CheckoutButton({
             setError(null);
             const res = await checkoutAction({ purpose, code, vacancyId });
             if (res.ok && res.data) router.push(res.data.redirectUrl);
-            else if (!res.ok) setError(res.error);
+            else if (!res.ok) setError(tr(res.error));
           })
         }
       >

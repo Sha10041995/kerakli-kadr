@@ -9,7 +9,8 @@ import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { Alert, Card } from "@/components/ui/misc";
 import { LocationPicker } from "@/features/locations/components/location-picker";
 import { saveCompanyAction } from "@/features/employers/actions";
-import { COMPANY_TYPE_LABELS, options } from "@/lib/i18n/uz";
+import { useI18n } from "@/lib/i18n/client";
+import { enumOptions } from "@/lib/i18n/dictionary";
 import { companySchema, type CompanyInput } from "@/validations/company";
 
 export function CompanyForm({
@@ -22,6 +23,7 @@ export function CompanyForm({
   isNew: boolean;
 }) {
   const router = useRouter();
+  const { t, tr, d } = useI18n();
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const { register, handleSubmit, setValue, control, formState } = useForm<CompanyInput>({
     resolver: zodResolver(companySchema),
@@ -32,8 +34,8 @@ export function CompanyForm({
 
   const onSubmit = handleSubmit(async (values) => {
     const res = await saveCompanyAction(values);
-    if (!res.ok) return setStatus({ ok: false, text: res.error });
-    setStatus({ ok: true, text: res.message ?? "Saqlandi" });
+    if (!res.ok) return setStatus({ ok: false, text: tr(res.error) });
+    setStatus({ ok: true, text: tr(res.message) || t("success.saved") });
     if (isNew) router.push("/dashboard/vacancies/new");
     else router.refresh();
   });
@@ -42,9 +44,9 @@ export function CompanyForm({
     <form onSubmit={onSubmit} className="space-y-6" noValidate>
       <Card className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Turi" htmlFor="companyType" error={errors.companyType?.message}>
+          <Field label={t("companyForm.type")} htmlFor="companyType" error={errors.companyType?.message}>
             <Select id="companyType" {...register("companyType")}>
-              {options(COMPANY_TYPE_LABELS).map((o) => (
+              {enumOptions(d.enums.companyType).map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
@@ -52,27 +54,32 @@ export function CompanyForm({
             </Select>
           </Field>
           <Field
-            label={type === "individual" ? "Ism-familiya yoki nom" : "Kompaniya nomi"}
+            label={type === "individual" ? t("companyForm.personName") : t("companyForm.companyName")}
             htmlFor="name"
             error={errors.name?.message}
           >
             <Input id="name" maxLength={160} {...register("name")} />
           </Field>
           {type !== "individual" ? (
-            <Field label="STIR (INN)" htmlFor="stir" error={errors.stir?.message} hint="9 ta raqam">
+            <Field label={t("companyForm.stir")} htmlFor="stir" error={errors.stir?.message} hint={t("companyForm.stirHint")}>
               <Input id="stir" inputMode="numeric" maxLength={9} {...register("stir")} />
             </Field>
           ) : null}
-          <Field label="Veb-sayt" htmlFor="website" error={errors.website?.message}>
+          <Field label={t("companyForm.website")} htmlFor="website" error={errors.website?.message}>
             <Input id="website" type="url" placeholder="https://" {...register("website")} />
           </Field>
-          <Field label="Faoliyat haqida" htmlFor="description" error={errors.description?.message} className="sm:col-span-2">
+          <Field
+            label={t("companyForm.about")}
+            htmlFor="description"
+            error={errors.description?.message}
+            className="sm:col-span-2"
+          >
             <Textarea id="description" rows={4} maxLength={5000} {...register("description")} />
           </Field>
         </div>
       </Card>
       <Card className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">Manzil</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{t("companyForm.address")}</h2>
         <LocationPicker
           regions={regions}
           depth={3}
@@ -87,13 +94,13 @@ export function CompanyForm({
             setValue("lng", null);
           }}
         />
-        <Field label="Manzil (koʻcha, uy)" htmlFor="address" error={errors.address?.message}>
+        <Field label={t("companyForm.street")} htmlFor="address" error={errors.address?.message}>
           <Input id="address" maxLength={300} {...register("address")} />
         </Field>
       </Card>
       {status ? <Alert tone={status.ok ? "success" : "danger"}>{status.text}</Alert> : null}
       <Button type="submit" size="lg" disabled={formState.isSubmitting}>
-        {formState.isSubmitting ? "Saqlanmoqda…" : isNew ? "Davom etish" : "Saqlash"}
+        {formState.isSubmitting ? t("common.saving") : isNew ? t("companyForm.continue") : t("common.save")}
       </Button>
     </form>
   );

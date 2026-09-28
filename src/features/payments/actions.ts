@@ -17,14 +17,14 @@ const checkoutSchema = z.object({
 
 export async function checkoutAction(input: unknown): Promise<ActionResult<{ redirectUrl: string }>> {
   const parsed = checkoutSchema.safeParse(input);
-  if (!parsed.success) return fail("Notoʻgʻri soʻrov");
+  if (!parsed.success) return fail("errors.badRequest");
   const provider = getDefaultPaymentProvider();
-  if (!provider) return fail("Onlayn toʻlov hozircha ulanmagan. Iltimos, keyinroq urinib koʻring.");
+  if (!provider) return fail("errors.paymentsUnavailable");
 
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub;
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
 
   const { data: membership } = await supabase
     .from("company_members")
@@ -57,14 +57,14 @@ export async function checkoutAction(input: unknown): Promise<ActionResult<{ red
 
 /** Development-only: settle a mock payment. */
 export async function completeMockPaymentAction(paymentId: string, outcome: "paid" | "cancelled"): Promise<ActionResult> {
-  if (!uuidSchema.safeParse(paymentId).success || !["paid", "cancelled"].includes(outcome)) return fail("Notoʻgʻri soʻrov");
-  if (!getPaymentProvider("mock")) return fail("Test toʻlovlar oʻchirilgan.");
+  if (!uuidSchema.safeParse(paymentId).success || !["paid", "cancelled"].includes(outcome)) return fail("errors.badRequest");
+  if (!getPaymentProvider("mock")) return fail("errors.mockDisabled");
   const supabase = await createClient();
   const { data: payment } = await supabase.from("payments").select("id, provider, status").eq("id", paymentId).maybeSingle();
-  if (!payment || payment.provider !== "mock") return fail("Toʻlov topilmadi");
-  if (payment.status !== "pending") return fail("Toʻlov allaqachon yakunlangan");
+  if (!payment || payment.provider !== "mock") return fail("errors.paymentNotFound");
+  if (payment.status !== "pending") return fail("errors.paymentFinished");
   const admin = createAdminClient();
-  if (!admin) return fail("SUPABASE_SERVICE_ROLE_KEY sozlanmagan.");
+  if (!admin) return fail("errors.serviceRoleMissing");
   const { error } =
     outcome === "paid"
       ? await admin.rpc("mark_payment_paid", { p_payment_id: paymentId, p_provider_ref: `mock_${paymentId}` })

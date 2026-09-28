@@ -5,36 +5,37 @@ import { ConfirmButton } from "@/components/ui/action-form";
 import { requireUser } from "@/features/auth/session";
 import { markAllNotificationsReadAction } from "@/features/notifications/actions";
 import { listNotifications } from "@/features/notifications/queries";
-import { cn, safeRedirectPath, timeAgo } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
+import { cn, safeRedirectPath } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Bildirishnomalar", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("notificationsPage.title"), robots: { index: false } };
+}
 
 export default async function NotificationsPage() {
   const user = await requireUser("/notifications");
-  const items = await listNotifications(user.id);
+  const [items, { t, f }] = await Promise.all([listNotifications(user.id), getI18n()]);
   const unread = items.filter((n) => !n.read_at).length;
   return (
     <Container className="py-6 sm:py-8">
       <PageHeader
-        title="Bildirishnomalar"
-        description={unread ? `${unread} ta oʻqilmagan` : "Hammasi oʻqilgan"}
+        title={t("notificationsPage.title")}
+        description={unread ? t("notificationsPage.unread", { n: unread }) : t("notificationsPage.allRead")}
         actions={
           unread ? (
             <ConfirmButton
               className="text-brand-700 text-sm font-medium hover:underline"
-              confirmText="Hammasini oʻqilgan deb belgilaysizmi?"
+              confirmText={t("notificationsPage.markAllConfirm")}
               onConfirm={markAllNotificationsReadAction}
             >
-              Hammasini oʻqildi deb belgilash
+              {t("notificationsPage.markAll")}
             </ConfirmButton>
           ) : null
         }
       />
       {items.length === 0 ? (
-        <EmptyState
-          title="Bildirishnomalar yoʻq"
-          description="Yangi ariza, xabar yoki mos vakansiya chiqqanda shu yerda koʻrasiz."
-        />
+        <EmptyState title={t("notificationsPage.none")} description={t("notificationsPage.noneText")} />
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white">
           {items.map((n) => {
@@ -42,7 +43,7 @@ export default async function NotificationsPage() {
               <>
                 <p className={cn("text-sm text-slate-900", !n.read_at && "font-semibold")}>{n.title}</p>
                 {n.body ? <p className="text-sm text-slate-600">{n.body}</p> : null}
-                <p className="text-xs text-slate-400">{timeAgo(n.created_at)}</p>
+                <p className="text-xs text-slate-400">{f.timeAgo(n.created_at)}</p>
               </>
             );
             return (

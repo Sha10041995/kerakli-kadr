@@ -8,11 +8,11 @@ import { reviewSchema } from "@/validations/misc";
 
 export async function submitReviewAction(input: unknown): Promise<ActionResult> {
   const parsed = reviewSchema.safeParse(input);
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub;
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   // direction / reviewee are derived by the database from the hired application.
   const { error } = await supabase.from("reviews").insert({
     application_id: parsed.data.applicationId,
@@ -23,9 +23,9 @@ export async function submitReviewAction(input: unknown): Promise<ActionResult> 
     comment: parsed.data.comment || null,
   });
   if (error) {
-    if (error.code === "23505") return fail("Siz allaqachon sharh qoldirgansiz.");
+    if (error.code === "23505") return fail("errors.alreadyReviewed");
     return fail(toUserMessage(error));
   }
   revalidatePath("/dashboard", "layout");
-  return { ok: true, message: "Rahmat! Sharhingiz saqlandi." };
+  return { ok: true, message: "success.reviewSaved" };
 }

@@ -8,11 +8,11 @@ import { fieldErrors, uuidSchema } from "@/validations/common";
 
 export async function saveSearchAction(input: unknown): Promise<ActionResult> {
   const parsed = savedSearchSchema.safeParse(input);
-  if (!parsed.success) return fail("Qidiruv parametrlari notoʻgʻri", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.badRequest", fieldErrors(parsed.error));
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub;
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   const s = parsed.data;
   const { error } = await supabase.from("saved_searches").insert({
     user_id: userId,
@@ -28,11 +28,11 @@ export async function saveSearchAction(input: unknown): Promise<ActionResult> {
   });
   if (error) return fail(toUserMessage(error));
   revalidatePath("/dashboard/saved");
-  return { ok: true, message: "Qidiruv saqlandi. Yangi mos eʼlonlar haqida xabar beramiz." };
+  return { ok: true, message: "success.searchSaved" };
 }
 
 export async function deleteSavedSearchAction(id: string): Promise<ActionResult> {
-  if (!uuidSchema.safeParse(id).success) return fail("Notoʻgʻri soʻrov");
+  if (!uuidSchema.safeParse(id).success) return fail("errors.badRequest");
   const supabase = await createClient();
   const { error } = await supabase.from("saved_searches").delete().eq("id", id);
   if (error) return fail(toUserMessage(error));

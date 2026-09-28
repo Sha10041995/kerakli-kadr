@@ -16,7 +16,8 @@ qishlogʻi yoki mahallasidan kerakli kadrni, ish izlovchi esa oʻz hududidagi is
 | Backend     | Next.js Server Actions + Route Handlers                                            |
 | Maʼlumotlar | Supabase PostgreSQL (RLS), Supabase Auth, Supabase Storage, Realtime               |
 | Validatsiya | Zod (server + client), React Hook Form                                             |
-| Xarita      | Provayderdan mustaqil abstraksiya (OpenStreetMap embed)                            |
+| Xarita      | Leaflet + OpenStreetMap (roʻyxat/xarita koʻrinishi), provayder abstraksiyasi       |
+| Tillar      | Oʻzbek (asosiy), rus, ingliz — `src/lib/i18n` (cookie `locale`)                    |
 | Test        | Vitest (unit), SQL/RLS testlari, Playwright (E2E)                                  |
 | Sifat       | ESLint, Prettier, GitHub Actions CI                                                |
 

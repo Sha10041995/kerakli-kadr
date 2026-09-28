@@ -22,9 +22,9 @@ async function authed() {
 
 export async function saveCandidateProfileAction(input: unknown): Promise<ActionResult> {
   const parsed = candidateProfileSchema.safeParse(input);
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
   const { supabase, userId } = await authed();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   const d = parsed.data;
 
   const { error: pErr } = await supabase
@@ -76,14 +76,14 @@ export async function saveCandidateProfileAction(input: unknown): Promise<Action
 
   revalidatePath("/dashboard", "layout");
   revalidatePath(`/candidate/${userId}`);
-  return { ok: true, message: "Profil saqlandi" };
+  return { ok: true, message: "success.profileSaved" };
 }
 
 export async function addExperienceAction(input: unknown): Promise<ActionResult> {
   const parsed = experienceSchema.safeParse(input);
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
   const { supabase, userId } = await authed();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   const d = parsed.data;
   const { error } = await supabase.from("candidate_experience").insert({
     candidate_id: userId,
@@ -102,9 +102,9 @@ export async function addExperienceAction(input: unknown): Promise<ActionResult>
 
 export async function addEducationAction(input: unknown): Promise<ActionResult> {
   const parsed = educationSchema.safeParse(input);
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
   const { supabase, userId } = await authed();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   const d = parsed.data;
   const { error } = await supabase.from("candidate_education").insert({
     candidate_id: userId,
@@ -125,9 +125,9 @@ export async function addCertificateAction(formData: FormData): Promise<ActionRe
     issuer: formData.get("issuer") || undefined,
     issuedAt: formData.get("issuedAt") || null,
   });
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
   const { supabase, userId } = await authed();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   let filePath: string | null = null;
   const file = formData.get("file");
   if (file instanceof File && file.size > 0) {
@@ -153,9 +153,9 @@ export async function addPortfolioAction(formData: FormData): Promise<ActionResu
     description: formData.get("description") || undefined,
     url: formData.get("url") || "",
   });
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
   const { supabase, userId } = await authed();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   let imagePath: string | null = null;
   const file = formData.get("image");
   if (file instanceof File && file.size > 0) {
@@ -179,9 +179,9 @@ const CHILD_TABLES = ["candidate_experience", "candidate_education", "candidate_
 type ChildTable = (typeof CHILD_TABLES)[number];
 
 export async function deleteCandidateItemAction(table: ChildTable, id: string): Promise<ActionResult> {
-  if (!CHILD_TABLES.includes(table) || !uuidSchema.safeParse(id).success) return fail("Notoʻgʻri soʻrov");
+  if (!CHILD_TABLES.includes(table) || !uuidSchema.safeParse(id).success) return fail("errors.badRequest");
   const { supabase, userId } = await authed();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   const { error } = await supabase.from(table).delete().eq("id", id).eq("candidate_id", userId);
   if (error) return fail(toUserMessage(error));
   revalidatePath("/dashboard/profile");
@@ -190,15 +190,15 @@ export async function deleteCandidateItemAction(table: ChildTable, id: string): 
 
 export async function uploadAvatarAction(formData: FormData): Promise<ActionResult> {
   const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) return fail("Rasm tanlang");
+  if (!(file instanceof File) || file.size === 0) return fail("errors.selectImage");
   const { supabase, userId } = await authed();
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
   const up = await uploadFile("avatars", file);
   if (!up.ok) return fail(up.error);
   const { error } = await supabase.from("profiles").update({ avatar_url: up.publicUrl }).eq("id", userId);
   if (error) return fail(toUserMessage(error));
   revalidatePath("/", "layout");
-  return { ok: true, message: "Rasm yangilandi" };
+  return { ok: true, message: "success.photoUpdated" };
 }
 
 export async function recordCandidateViewAction(candidateId: string) {

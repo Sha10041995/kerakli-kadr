@@ -8,15 +8,18 @@ import { STATUS_TONE } from "@/features/applications/status";
 import { MatchBadge } from "@/features/matching/match-badge";
 import { matchVacanciesForMe } from "@/features/matching/queries";
 import { listCompanyVacancies } from "@/features/vacancies/queries";
-import { APPLICATION_STATUS_LABELS } from "@/lib/i18n/uz";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
-import { formatDistance, formatSalary, timeAgo } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Kabinet", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("dashboard.title"), robots: { index: false } };
+}
 
 export default async function DashboardPage() {
   const user = await requireUser("/dashboard");
   const supabase = await createClient();
+  const { t, d, f } = await getI18n();
 
   const [candidate, applications, recommendations, vacancies, views] = await Promise.all([
     user.isJobSeeker
@@ -45,10 +48,10 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <PageHeader title={`Salom, ${user.firstName || "doʻst"}!`} description="Oʻz hududingizdagi imkoniyatlar shu yerda." />
+      <PageHeader title={t("dashboard.hello", { name: user.firstName || t("auth.friend") })} description={t("dashboard.lead")} />
       {user.isBlocked ? (
         <Alert tone="danger" className="mb-4">
-          Hisobingiz vaqtincha cheklangan. Qoʻllab-quvvatlash xizmatiga murojaat qiling.
+          {t("dashboard.blocked")}
         </Alert>
       ) : null}
 
@@ -56,42 +59,42 @@ export default async function DashboardPage() {
         <section className="mb-10 space-y-4">
           {!candidate ? (
             <Alert tone="info">
-              Profilingiz hali yaratilmagan.{" "}
+              {t("dashboard.noProfile")}{" "}
               <Link href="/dashboard/profile" className="font-medium underline">
-                Profilni toʻldiring
+                {t("dashboard.fillProfile")}
               </Link>{" "}
-              — ish beruvchilar sizni hududingiz boʻyicha topadi.
+              {t("dashboard.noProfileAfter")}
             </Alert>
           ) : candidate.completeness < 70 ? (
             <Alert tone="warning">
-              Profilingiz {candidate.completeness}% toʻldirilgan. Toʻliq profillar ish beruvchilarga koʻproq koʻrsatiladi.{" "}
+              {t("dashboard.lowCompleteness", { n: candidate.completeness })}{" "}
               <Link href="/dashboard/profile" className="font-medium underline">
-                Toʻldirish
+                {t("dashboard.complete")}
               </Link>
             </Alert>
           ) : null}
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Stat
-              label="Profil"
+              label={t("dashboard.statProfile")}
               value={`${candidate?.completeness ?? 0}%`}
-              hint={candidate?.is_public ? "Ommaviy" : "Yashirin"}
+              hint={candidate?.is_public ? t("dashboard.public") : t("dashboard.hidden")}
             />
-            <Stat label="Arizalar" value={applications.length} />
-            <Stat label="Profil koʻrishlari" value={views} hint="ish beruvchilar tomonidan" />
+            <Stat label={t("dashboard.statApplications")} value={applications.length} />
+            <Stat label={t("dashboard.statViews")} value={views} hint={t("dashboard.byEmployers")} />
             <Stat
-              label="Suhbatga taklif"
+              label={t("dashboard.statInterviews")}
               value={applications.filter((a) => a.status === "interview" || a.status === "offered").length}
             />
           </div>
           <Card>
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Sizga mos ishlar</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t("dashboard.matchingJobs")}</h2>
               <Link href="/jobs" className="text-brand-700 text-sm font-medium hover:underline">
-                Barcha ishlar →
+                {t("dashboard.allJobs")}
               </Link>
             </div>
             {recommendations.length === 0 ? (
-              <p className="text-sm text-slate-600">Kasb va hududingizni koʻrsating — mos vakansiyalarni shu yerda koʻrasiz.</p>
+              <p className="text-sm text-slate-600">{t("dashboard.noMatches")}</p>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {recommendations.map(({ row, match }) => (
@@ -101,11 +104,11 @@ export default async function DashboardPage() {
                         {row.title}
                       </Link>
                       <p className="text-sm text-slate-600">
-                        {row.company_name} · {row.district_name ?? "Masofaviy"}
-                        {row.distance_km != null ? ` · ${formatDistance(row.distance_km)}` : ""}
+                        {row.company_name} · {row.district_name ?? t("common.remote")}
+                        {row.distance_km != null ? ` · ${f.distance(row.distance_km)}` : ""}
                       </p>
                       <p className="text-sm text-slate-800">
-                        {formatSalary(row.vacancy_salary_min, row.vacancy_salary_max, row.salary_type)}
+                        {f.salary(row.vacancy_salary_min, row.vacancy_salary_max, row.salary_type)}
                       </p>
                     </div>
                     <MatchBadge match={match} />
@@ -116,14 +119,14 @@ export default async function DashboardPage() {
           </Card>
           {applications.length > 0 ? (
             <Card>
-              <h2 className="mb-3 text-lg font-semibold text-slate-900">Soʻnggi arizalar</h2>
+              <h2 className="mb-3 text-lg font-semibold text-slate-900">{t("dashboard.recentApplications")}</h2>
               <ul className="divide-y divide-slate-100">
                 {applications.slice(0, 5).map((a) => (
                   <li key={a.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                     <Link href={`/vacancy/${a.vacancy_id}`} className="hover:text-brand-700 truncate text-slate-800">
                       {a.vacancies?.title}
                     </Link>
-                    <Badge tone={STATUS_TONE[a.status]}>{APPLICATION_STATUS_LABELS[a.status]}</Badge>
+                    <Badge tone={STATUS_TONE[a.status]}>{d.enums.applicationStatus[a.status]}</Badge>
                   </li>
                 ))}
               </ul>
@@ -136,26 +139,26 @@ export default async function DashboardPage() {
         <section className="space-y-4">
           {!user.companyId ? (
             <EmptyState
-              title="Ish beruvchi profilini yarating"
-              description="Jismoniy shaxs sifatida ham vakansiya joylashingiz mumkin."
-              action={<ButtonLink href="/dashboard/company">Boshlash</ButtonLink>}
+              title={t("dashboard.createEmployer")}
+              description={t("dashboard.createEmployerText")}
+              action={<ButtonLink href="/dashboard/company">{t("dashboard.start")}</ButtonLink>}
             />
           ) : (
             <>
               <div className="grid gap-3 sm:grid-cols-3">
-                <Stat label="Faol vakansiyalar" value={active} />
-                <Stat label="Jami arizalar" value={totalApps} />
-                <Stat label="Koʻrishlar" value={vacancies.reduce((s, v) => s + v.views_count, 0)} />
+                <Stat label={t("dashboard.statActive")} value={active} />
+                <Stat label={t("dashboard.statTotalApps")} value={totalApps} />
+                <Stat label={t("dashboard.statVacancyViews")} value={vacancies.reduce((s, v) => s + v.views_count, 0)} />
               </div>
               <Card>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-slate-900">Vakansiyalarim</h2>
+                  <h2 className="text-lg font-semibold text-slate-900">{t("dashboard.myVacancies")}</h2>
                   <ButtonLink href="/dashboard/vacancies/new" size="sm">
-                    + Yangi
+                    {t("dashboard.newShort")}
                   </ButtonLink>
                 </div>
                 {vacancies.length === 0 ? (
-                  <p className="text-sm text-slate-600">Hali vakansiya yoʻq.</p>
+                  <p className="text-sm text-slate-600">{t("dashboard.noVacancies")}</p>
                 ) : (
                   <ul className="divide-y divide-slate-100">
                     {vacancies.slice(0, 6).map((v) => (
@@ -164,7 +167,7 @@ export default async function DashboardPage() {
                           {v.title}
                         </Link>
                         <span className="shrink-0 text-slate-500">
-                          {v.applications_count} ariza · {timeAgo(v.created_at)}
+                          {t("dashboard.appsAgo", { n: v.applications_count, ago: f.timeAgo(v.created_at) })}
                         </span>
                       </li>
                     ))}
@@ -177,7 +180,10 @@ export default async function DashboardPage() {
       ) : null}
 
       {!user.isJobSeeker && !user.isEmployer && !user.isStaff ? (
-        <EmptyState title="Rolni tanlang" action={<ButtonLink href="/onboarding">Davom etish</ButtonLink>} />
+        <EmptyState
+          title={t("dashboard.chooseRole")}
+          action={<ButtonLink href="/onboarding">{t("dashboard.continue")}</ButtonLink>}
+        />
       ) : null}
     </>
   );

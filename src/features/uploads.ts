@@ -19,12 +19,12 @@ export async function uploadFile(bucket: Bucket, file: File, folderOverride?: st
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub;
-  if (!userId) return { ok: false, error: "Iltimos, avval tizimga kiring." };
+  if (!userId) return { ok: false, error: "errors.loginRequired" };
 
   const limit = await checkRateLimit("upload", RATE_LIMITS.upload, userId);
   if (!limit.ok) return { ok: false, error: toUserMessage({ message: "RATE_LIMITED" }) };
 
-  if (!(file instanceof File)) return { ok: false, error: "Fayl tanlanmagan." };
+  if (!(file instanceof File)) return { ok: false, error: "errors.fileMissing" };
   const bytes = new Uint8Array(await file.arrayBuffer());
   const check = validateUpload(bucket, bytes.subarray(0, 16), file.size);
   if (!check.ok) return check;

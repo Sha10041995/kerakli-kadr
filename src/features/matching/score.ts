@@ -2,6 +2,10 @@
 // This is NOT a rating of the person: it only says how well a profile fits a
 // specific vacancy. Hiring decisions are always made by humans.
 // Factor weights are admin-configurable (app_settings: matching.weights).
+import { cards } from "@/lib/i18n/messages/public";
+import { createTranslator, localize } from "@/lib/i18n/translate";
+
+const uzTranslator = createTranslator({ cards: localize(cards, "uz") });
 
 export const MATCH_FACTORS = [
   "location",
@@ -70,7 +74,8 @@ export type MatchBreakdownItem = {
   points: number; // contribution to the 0..100 score
 };
 
-export type MatchResult = { score: number; breakdown: MatchBreakdownItem[]; reasons: string[] };
+/** `reasons` are Uzbek (admin/tests); `reasonKeys` are translatable message keys ("cards.reason.*"). */
+export type MatchResult = { score: number; breakdown: MatchBreakdownItem[]; reasons: string[]; reasonKeys: string[] };
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
@@ -125,18 +130,19 @@ export function computeMatch(features: MatchFeatures, weights: MatchWeights = DE
   });
   const score = Math.round(breakdown.reduce((s, b) => s + b.points, 0));
 
-  const reasons: string[] = [];
+  const reasonKeys: string[] = [];
   if (features.locationTier != null && features.locationTier >= 1 && features.locationTier <= 3)
-    reasons.push("Aynan shu hududdan");
-  else if (features.distanceKm != null && features.distanceKm <= 10) reasons.push("10 km ichida");
-  if (features.sameProfession) reasons.push("Kasbi mos");
+    reasonKeys.push("cards.reason.sameArea");
+  else if (features.distanceKm != null && features.distanceKm <= 10) reasonKeys.push("cards.reason.within10");
+  if (features.sameProfession) reasonKeys.push("cards.reason.sameProfession");
   if (features.skillsRequired && features.skillsMatched)
-    reasons.push(`${features.skillsMatched}/${features.skillsRequired} koʻnikma mos`);
+    reasonKeys.push(`cards.reason.skills?matched=${features.skillsMatched}&required=${features.skillsRequired}`);
   if (features.requiredExperience && (features.experienceYears ?? 0) >= features.requiredExperience)
-    reasons.push("Tajribasi yetarli");
-  if (features.availability === "immediately") reasons.push("Darhol ishga tayyor");
+    reasonKeys.push("cards.reason.experience");
+  if (features.availability === "immediately") reasonKeys.push("cards.reason.immediately");
+  const reasons = reasonKeys.map((k) => uzTranslator.tr(k));
 
-  return { score: Math.min(100, Math.max(0, score)), breakdown, reasons };
+  return { score: Math.min(100, Math.max(0, score)), breakdown, reasons, reasonKeys };
 }
 
 /** Validates admin-provided weights (unknown JSON) and falls back to defaults. */

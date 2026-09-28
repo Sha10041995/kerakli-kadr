@@ -3,9 +3,9 @@ import { locationFields, moneySchema, optionalId, text } from "./common";
 
 export const vacancySchema = z
   .object({
-    title: z.string().trim().min(3, { error: "Sarlavha kamida 3 ta belgi" }).max(160),
-    description: z.string().trim().min(20, { error: "Tavsif kamida 20 ta belgi boʻlsin" }).max(10000),
-    professionId: z.number({ error: "Kasbni tanlang" }).int().positive(),
+    title: z.string().trim().min(3, { error: "validation.titleMin" }).max(160),
+    description: z.string().trim().min(20, { error: "validation.descriptionMin" }).max(10000),
+    professionId: z.number({ error: "validation.profession" }).int().positive(),
     categoryId: optionalId,
     experienceMinYears: z.number().min(0).max(50),
     educationLevel: z.enum(["none", "secondary", "vocational", "bachelor", "master", "doctorate"]).nullable().optional(),
@@ -44,15 +44,15 @@ export const vacancySchema = z
   })
   .refine((v) => v.regionId != null || v.remoteAllowed, {
     path: ["regionId"],
-    error: "Ish joyi hududini tanlang (yoki masofaviy ishni belgilang)",
+    error: "validation.workplace",
   })
   .refine((v) => v.salaryMin == null || v.salaryMax == null || v.salaryMax >= v.salaryMin, {
     path: ["salaryMax"],
-    error: "Maksimal maosh minimaldan kam boʻlmasin",
+    error: "validation.salaryRange",
   })
   .refine((v) => !v.applicationDeadline || v.applicationDeadline >= new Date().toISOString().slice(0, 10), {
     path: ["applicationDeadline"],
-    error: "Muddat oʻtgan sana boʻlmasin",
+    error: "validation.deadline",
   });
 export type VacancyInput = z.input<typeof vacancySchema>;
 export type VacancyData = z.output<typeof vacancySchema>;

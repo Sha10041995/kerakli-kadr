@@ -7,36 +7,38 @@ import { Button } from "@/components/ui/button";
 import { changeApplicationStatusAction, revealContactAction } from "@/features/applications/actions";
 import { startConversationAction } from "@/features/messaging/actions";
 import { nextStatuses, type ApplicationStatus } from "@/features/applications/status";
-import { APPLICATION_STATUS_LABELS } from "@/lib/i18n/uz";
+import { useI18n } from "@/lib/i18n/client";
 
 export function StatusSelect({ applicationId, status }: { applicationId: string; status: ApplicationStatus }) {
   const router = useRouter();
+  const { t, tr, d } = useI18n();
+  const labels = d.enums.applicationStatus;
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const next = nextStatuses(status);
-  if (next.length === 0) return <span className="text-sm font-medium text-slate-700">{APPLICATION_STATUS_LABELS[status]}</span>;
+  if (next.length === 0) return <span className="text-sm font-medium text-slate-700">{labels[status]}</span>;
   return (
     <div>
       <Select
-        aria-label="Ariza holati"
+        aria-label={t("employer.statusAria")}
         value=""
         disabled={pending}
         className="h-9 w-44"
         onChange={(e) => {
           const value = e.target.value as ApplicationStatus;
           if (!value) return;
-          if (value === "hired" && !window.confirm("Nomzodni ishga qabul qilganingizni tasdiqlaysizmi?")) return;
+          if (value === "hired" && !window.confirm(t("employer.hireConfirm"))) return;
           start(async () => {
             const res = await changeApplicationStatusAction({ applicationId, status: value });
-            if (!res.ok) setError(res.error);
+            if (!res.ok) setError(tr(res.error));
             else router.refresh();
           });
         }}
       >
-        <option value="">{APPLICATION_STATUS_LABELS[status]} → …</option>
+        <option value="">{labels[status]} → …</option>
         {next.map((s) => (
           <option key={s} value={s}>
-            {APPLICATION_STATUS_LABELS[s]}
+            {labels[s]}
           </option>
         ))}
       </Select>
@@ -47,6 +49,7 @@ export function StatusSelect({ applicationId, status }: { applicationId: string;
 
 export function ContactButtons({ applicationId, candidateId }: { applicationId: string; candidateId: string }) {
   const router = useRouter();
+  const { t, tr } = useI18n();
   const [pending, start] = useTransition();
   const [contact, setContact] = useState<{ phone: string | null; email: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +62,7 @@ export function ContactButtons({ applicationId, candidateId }: { applicationId: 
               {contact.phone}
             </a>
           ) : (
-            "Telefon koʻrsatilmagan"
+            t("employer.noPhone")
           )}
           {contact.email ? (
             <>
@@ -80,11 +83,11 @@ export function ContactButtons({ applicationId, candidateId }: { applicationId: 
             start(async () => {
               const res = await revealContactAction(applicationId);
               if (res.ok) setContact(res.data ?? null);
-              else setError(res.error);
+              else setError(tr(res.error));
             })
           }
         >
-          Kontaktni koʻrish
+          {t("employer.showContact")}
         </Button>
       )}
       <Button
@@ -95,11 +98,11 @@ export function ContactButtons({ applicationId, candidateId }: { applicationId: 
           start(async () => {
             const res = await startConversationAction({ otherUserId: candidateId, applicationId });
             if (res.ok && res.data) router.push(`/messages/${res.data.conversationId}`);
-            else if (!res.ok) setError(res.error);
+            else if (!res.ok) setError(tr(res.error));
           })
         }
       >
-        Xabar yozish
+        {t("employer.writeMessage")}
       </Button>
       {error ? <span className="text-xs text-red-600">{error}</span> : null}
     </div>

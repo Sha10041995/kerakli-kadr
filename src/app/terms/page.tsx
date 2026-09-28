@@ -1,21 +1,25 @@
 import type { Metadata } from "next";
 import { Card, Container, PageHeader } from "@/components/ui/misc";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: "Foydalanish shartlari", alternates: { canonical: "/terms" } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("pages.terms.title"), alternates: { canonical: "/terms" } };
+}
 
-export default function TermsPage() {
+const RULES = [1, 2, 3, 4, 5, 6] as const;
+
+export default async function TermsPage() {
+  const { t } = await getI18n();
   return (
     <Container className="max-w-3xl py-10">
-      <PageHeader title="Foydalanish shartlari" />
+      <PageHeader title={t("pages.terms.title")} />
       <Card className="space-y-4 text-sm leading-relaxed text-slate-700">
-        <p>Platformadan foydalanib, siz quyidagilarga rozilik bildirasiz:</p>
+        <p>{t("pages.terms.intro")}</p>
         <ul className="list-disc space-y-2 pl-5">
-          <li>Faqat haqqoniy maʼlumot joylash; soxta vakansiya, firibgarlik va chalgʻituvchi maosh taqiqlanadi.</li>
-          <li>Ishga olish uchun nomzoddan pul talab qilish taqiqlanadi.</li>
-          <li>Noqonuniy ishlar va kamsituvchi talablar (qonun talab qilmagan hollarda jins, yosh va h.k.) joylashtirilmaydi.</li>
-          <li>Sharhlar faqat haqiqiy ish jarayonidan keyin yoziladi.</li>
-          <li>Qoidabuzarlik aniqlanganda eʼlon yoki hisob bloklanishi mumkin.</li>
-          <li>Pullik xizmatlar ixtiyoriy; narxlar “Tariflar” sahifasida koʻrsatilgan.</li>
+          {RULES.map((n) => (
+            <li key={n}>{t(`pages.terms.r${n}`)}</li>
+          ))}
         </ul>
       </Card>
     </Container>

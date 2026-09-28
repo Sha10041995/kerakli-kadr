@@ -16,10 +16,10 @@ const startSchema = z.object({
 
 export async function startConversationAction(input: unknown): Promise<ActionResult<{ conversationId: string }>> {
   const parsed = startSchema.safeParse(input);
-  if (!parsed.success) return fail("Notoʻgʻri soʻrov");
+  if (!parsed.success) return fail("errors.badRequest");
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
-  if (!auth?.claims?.sub) return fail("Iltimos, avval tizimga kiring.");
+  if (!auth?.claims?.sub) return fail("errors.loginRequired");
   // Who may contact whom is enforced inside start_conversation() (SECURITY DEFINER).
   const { data, error } = await supabase.rpc("start_conversation", {
     p_other_user: parsed.data.otherUserId,
@@ -49,16 +49,16 @@ export async function sendMessageAction(
   const file = formData.get("file");
   const hasFile = file instanceof File && file.size > 0;
 
-  if (!uuidSchema.safeParse(conversationId).success) return fail("Notoʻgʻri soʻrov");
+  if (!uuidSchema.safeParse(conversationId).success) return fail("errors.badRequest");
   if (!hasFile) {
     const parsed = messageSchema.safeParse({ conversationId, body });
-    if (!parsed.success) return fail("Xabarni tekshiring", fieldErrors(parsed.error));
-  } else if (body.length > 4000) return fail("Xabar juda uzun");
+    if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
+  } else if (body.length > 4000) return fail("errors.messageTooLong");
 
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub;
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
 
   let attachment: { path: string; name: string; mime: string } | null = null;
   if (hasFile) {
@@ -106,10 +106,10 @@ export async function markConversationReadAction(conversationId: string) {
 }
 
 export async function getAttachmentUrlAction(path: string): Promise<ActionResult<{ url: string }>> {
-  if (typeof path !== "string" || path.length > 500 || path.includes("..")) return fail("Notoʻgʻri soʻrov");
+  if (typeof path !== "string" || path.length > 500 || path.includes("..")) return fail("errors.badRequest");
   const supabase = await createClient();
   // Storage RLS allows signing only for conversation participants.
   const { data, error } = await supabase.storage.from("chat-attachments").createSignedUrl(path, 60);
-  if (error || !data) return fail("Fayl topilmadi");
+  if (error || !data) return fail("errors.fileNotFound");
   return { ok: true, data: { url: data.signedUrl } };
 }

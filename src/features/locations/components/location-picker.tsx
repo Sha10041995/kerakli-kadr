@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { Label, Select } from "@/components/ui/form";
+import { useI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 type Option = { id: number; name: string; kind?: string | null };
@@ -39,6 +40,7 @@ async function fetchChildren(level: string, parent: number, settlement?: number 
  */
 export function LocationPicker({ regions, value, onChange, names, depth = 4, compact, errors, className }: Props) {
   const uid = useId();
+  const { t, tr } = useI18n();
   const [sel, setSel] = useState<LocationValue>({
     regionId: value?.regionId ?? null,
     districtId: value?.districtId ?? null,
@@ -102,35 +104,35 @@ export function LocationPicker({ regions, value, onChange, names, depth = 4, com
   return (
     <div className={cn("grid gap-3", compact ? "grid-cols-1" : "sm:grid-cols-2", className)}>
       <div>
-        {!compact && <Label htmlFor={`${uid}-r`}>Viloyat</Label>}
+        {!compact && <Label htmlFor={`${uid}-r`}>{t("search.region")}</Label>}
         <Select
           id={`${uid}-r`}
-          aria-label="Viloyat"
+          aria-label={t("search.region")}
           className={selectClass}
           value={sel.regionId ?? ""}
           aria-invalid={Boolean(errors?.regionId)}
           onChange={(e) => update({ regionId: num(e.target.value), districtId: null, settlementId: null, mahallaId: null })}
         >
-          <option value="">Butun Oʻzbekiston</option>
+          <option value="">{t("search.wholeCountry")}</option>
           {regions.map((r) => (
             <option key={r.id} value={r.id}>
               {r.name}
             </option>
           ))}
         </Select>
-        {errors?.regionId ? <p className="mt-1 text-xs text-red-600">{errors.regionId}</p> : null}
+        {errors?.regionId ? <p className="mt-1 text-xs text-red-600">{tr(errors.regionId)}</p> : null}
       </div>
       <div>
-        {!compact && <Label htmlFor={`${uid}-d`}>Tuman / shahar</Label>}
+        {!compact && <Label htmlFor={`${uid}-d`}>{t("search.district")}</Label>}
         <Select
           id={`${uid}-d`}
-          aria-label="Tuman yoki shahar"
+          aria-label={t("search.districtAria")}
           className={selectClass}
           value={sel.districtId ?? ""}
           disabled={!sel.regionId}
           onChange={(e) => update({ ...sel, districtId: num(e.target.value), settlementId: null, mahallaId: null })}
         >
-          <option value="">Barcha tumanlar</option>
+          <option value="">{t("search.allDistricts")}</option>
           {districts.map((d) => (
             <option key={d.id} value={d.id}>
               {d.name}
@@ -140,16 +142,16 @@ export function LocationPicker({ regions, value, onChange, names, depth = 4, com
       </div>
       {depth >= 3 && (!compact || settlements.length > 0) ? (
         <div>
-          {!compact && <Label htmlFor={`${uid}-s`}>Shahar / qishloq</Label>}
+          {!compact && <Label htmlFor={`${uid}-s`}>{t("search.settlement")}</Label>}
           <Select
             id={`${uid}-s`}
-            aria-label="Shahar yoki qishloq"
+            aria-label={t("search.settlementAria")}
             className={selectClass}
             value={sel.settlementId ?? ""}
             disabled={!sel.districtId || settlements.length === 0}
             onChange={(e) => update({ ...sel, settlementId: num(e.target.value), mahallaId: null })}
           >
-            <option value="">{settlements.length ? "Barcha aholi punktlari" : "—"}</option>
+            <option value="">{settlements.length ? t("search.allSettlements") : "—"}</option>
             {settlements.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -160,16 +162,16 @@ export function LocationPicker({ regions, value, onChange, names, depth = 4, com
       ) : null}
       {depth >= 4 && (!compact || mahallas.length > 0) ? (
         <div>
-          {!compact && <Label htmlFor={`${uid}-m`}>Mahalla</Label>}
+          {!compact && <Label htmlFor={`${uid}-m`}>{t("search.mahalla")}</Label>}
           <Select
             id={`${uid}-m`}
-            aria-label="Mahalla"
+            aria-label={t("search.mahalla")}
             className={selectClass}
             value={sel.mahallaId ?? ""}
             disabled={!sel.districtId || mahallas.length === 0}
             onChange={(e) => update({ ...sel, mahallaId: num(e.target.value) })}
           >
-            <option value="">{mahallas.length ? "Barcha mahallalar" : "—"}</option>
+            <option value="">{mahallas.length ? t("search.allMahallas") : "—"}</option>
             {mahallas.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}

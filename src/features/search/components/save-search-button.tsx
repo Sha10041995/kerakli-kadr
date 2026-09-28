@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { BellIcon } from "@/components/ui/icons";
 import { saveSearchAction } from "@/features/search/actions";
+import { useI18n } from "@/lib/i18n/client";
 
 type Props = {
   kind: "vacancies" | "candidates";
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function SaveSearchButton({ kind, label, search }: Props) {
+  const { t, tr } = useI18n();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   return (
@@ -41,11 +43,11 @@ export function SaveSearchButton({ kind, label, search }: Props) {
               settlementId: search.settlement ?? null,
               radiusKm: search.radius ?? null,
             });
-            setMsg(res.ok ? { ok: true, text: res.message ?? "Saqlandi" } : { ok: false, text: res.error });
+            setMsg(res.ok ? { ok: true, text: tr(res.message) || t("search.saved") } : { ok: false, text: tr(res.error) });
           })
         }
       >
-        <BellIcon size={16} /> {msg?.ok ? "Saqlandi" : "Qidiruvni saqlash"}
+        <BellIcon size={16} /> {msg?.ok ? t("search.saved") : t("search.saveSearch")}
       </Button>
       {msg ? (
         <p role="status" className={msg.ok ? "text-xs text-emerald-700" : "text-xs text-red-600"}>

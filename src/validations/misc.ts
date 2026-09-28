@@ -16,7 +16,7 @@ export const messageSchema = z.object({
   body: z
     .string()
     .transform((v) => v.trim())
-    .pipe(z.string().min(1, { error: "Xabar boʻsh" }).max(4000, { error: "Xabar juda uzun" })),
+    .pipe(z.string().min(1, { error: "validation.messageEmpty" }).max(4000, { error: "validation.messageTooLong" })),
 });
 
 export const reviewSchema = z.object({

@@ -38,13 +38,13 @@ export type FileCheck = { ok: true; mime: AllowedMime; ext: string } | { ok: fal
 
 export function validateUpload(bucket: Bucket, bytes: Uint8Array, size: number): FileCheck {
   const rule = UPLOAD_RULES[bucket];
-  if (size <= 0) return { ok: false, error: "Fayl boʻsh." };
+  if (size <= 0) return { ok: false, error: "errors.fileEmpty" };
   if (size > rule.maxBytes) {
-    return { ok: false, error: `Fayl hajmi ${Math.round(rule.maxBytes / 1024 / 1024)} MB dan oshmasligi kerak.` };
+    return { ok: false, error: `errors.fileTooLarge?mb=${Math.round(rule.maxBytes / 1024 / 1024)}` };
   }
   const mime = sniffMime(bytes);
   if (!mime || !(rule.types as readonly string[]).includes(mime)) {
-    return { ok: false, error: "Fayl turi ruxsat etilmagan." };
+    return { ok: false, error: "errors.fileType" };
   }
   return { ok: true, mime, ext: EXTENSIONS[mime] };
 }

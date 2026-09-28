@@ -9,11 +9,11 @@ export async function toggleFavoriteAction(
   kind: "vacancy" | "candidate",
   targetId: string,
 ): Promise<ActionResult<{ saved: boolean }>> {
-  if ((kind !== "vacancy" && kind !== "candidate") || !uuidSchema.safeParse(targetId).success) return fail("Notoʻgʻri soʻrov");
+  if ((kind !== "vacancy" && kind !== "candidate") || !uuidSchema.safeParse(targetId).success) return fail("errors.badRequest");
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub;
-  if (!userId) return fail("Saqlash uchun tizimga kiring.");
+  if (!userId) return fail("errors.saveLogin");
   const column = kind === "vacancy" ? "vacancy_id" : "candidate_id";
   const { data: existing } = await supabase
     .from("favorites")

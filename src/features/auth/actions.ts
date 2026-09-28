@@ -12,7 +12,7 @@ import { loginSchema, registerSchema } from "@/validations/auth";
 
 export async function signInAction(input: unknown): Promise<ActionResult<{ redirectTo: string }>> {
   const parsed = loginSchema.safeParse(input);
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
   const limit = await checkRateLimit("auth", RATE_LIMITS.auth, parsed.data.email);
   if (!limit.ok) return fail(toUserMessage({ message: "RATE_LIMITED" }));
 
@@ -24,7 +24,7 @@ export async function signInAction(input: unknown): Promise<ActionResult<{ redir
 
 export async function signUpAction(input: unknown): Promise<ActionResult<{ redirectTo?: string; needsConfirmation?: boolean }>> {
   const parsed = registerSchema.safeParse(input);
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
   const limit = await checkRateLimit("auth", RATE_LIMITS.auth, parsed.data.email);
   if (!limit.ok) return fail(toUserMessage({ message: "RATE_LIMITED" }));
 
@@ -45,7 +45,7 @@ export async function signUpAction(input: unknown): Promise<ActionResult<{ redir
     if (phone) await supabase.from("profiles").update({ phone }).eq("id", data.user.id);
     return { ok: true, data: { redirectTo: "/onboarding" } };
   }
-  return { ok: true, data: { needsConfirmation: true }, message: "Emailingizga tasdiqlash havolasi yuborildi." };
+  return { ok: true, data: { needsConfirmation: true }, message: "success.confirmEmail" };
 }
 
 export async function signOutAction() {
@@ -55,7 +55,7 @@ export async function signOutAction() {
 }
 
 export async function chooseRoleAction(role: "job_seeker" | "employer"): Promise<ActionResult> {
-  if (role !== "job_seeker" && role !== "employer") return fail("Notoʻgʻri rol");
+  if (role !== "job_seeker" && role !== "employer") return fail("errors.ROLE_NOT_ALLOWED");
   const supabase = await createClient();
   const { error } = await supabase.rpc("choose_role", { p_role: role });
   if (error) return fail(toUserMessage(error));

@@ -1,5 +1,8 @@
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { FieldError } from "./field-error";
+
+export { FieldError };
 
 const fieldBase =
   "block w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20 disabled:bg-slate-100 aria-[invalid=true]:border-red-500";
@@ -22,16 +25,6 @@ export function Select({ className, children, ...props }: ComponentProps<"select
 
 export function Label({ className, ...props }: ComponentProps<"label">) {
   return <label className={cn("mb-1 block text-sm font-medium text-slate-700", className)} {...props} />;
-}
-
-export function FieldError({ message }: { message?: string | string[] }) {
-  const text = Array.isArray(message) ? message[0] : message;
-  if (!text) return null;
-  return (
-    <p role="alert" className="mt-1 text-xs text-red-600">
-      {text}
-    </p>
-  );
 }
 
 export function Field({

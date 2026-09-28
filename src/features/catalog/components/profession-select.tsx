@@ -4,9 +4,9 @@ import type { CategoryWithProfessions } from "@/features/catalog/queries";
 
 export function ProfessionSelect({
   catalog,
-  placeholder = "Barcha kasblar",
+  placeholder,
   ...props
-}: ComponentProps<"select"> & { catalog: CategoryWithProfessions[]; placeholder?: string }) {
+}: ComponentProps<"select"> & { catalog: CategoryWithProfessions[]; placeholder: string }) {
   return (
     <Select {...props}>
       <option value="">{placeholder}</option>

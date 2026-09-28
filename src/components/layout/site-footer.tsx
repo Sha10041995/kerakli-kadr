@@ -1,83 +1,87 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/misc";
+import { getI18n } from "@/lib/i18n/server";
 import { SITE_NAME } from "@/lib/seo";
+import { LocaleSwitcher } from "./locale-switcher";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const { t } = await getI18n();
   return (
     <footer className="no-print mt-16 border-t border-slate-200 bg-white pb-20 md:pb-0">
       <Container className="grid gap-8 py-10 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <p className="font-extrabold text-slate-900">{SITE_NAME}</p>
-          <p className="mt-2 max-w-xs">Katta shaharda emas, oʻz hududingda ham imkoniyat bor.</p>
+          <p className="mt-2 max-w-xs">{t("nav.footerSlogan")}</p>
+          <LocaleSwitcher className="mt-3" />
         </div>
         <div>
-          <p className="font-semibold text-slate-900">Ish izlovchilar uchun</p>
+          <p className="font-semibold text-slate-900">{t("nav.forSeekers")}</p>
           <ul className="mt-2 space-y-1">
             <li>
               <Link href="/jobs" className="hover:text-brand-700">
-                Vakansiyalar
+                {t("nav.vacancies")}
               </Link>
             </li>
             <li>
               <Link href="/register?role=job_seeker" className="hover:text-brand-700">
-                Rezyume yaratish
+                {t("nav.createResume")}
               </Link>
             </li>
             <li>
               <Link href="/jobs?urgent=1" className="hover:text-brand-700">
-                Shoshilinch ishlar
+                {t("nav.urgentJobs")}
               </Link>
             </li>
           </ul>
         </div>
         <div>
-          <p className="font-semibold text-slate-900">Ish beruvchilar uchun</p>
+          <p className="font-semibold text-slate-900">{t("nav.forEmployers")}</p>
           <ul className="mt-2 space-y-1">
             <li>
               <Link href="/candidates" className="hover:text-brand-700">
-                Kadrlar bazasi
+                {t("nav.talentBase")}
               </Link>
             </li>
             <li>
               <Link href="/register?role=employer" className="hover:text-brand-700">
-                Vakansiya joylash
+                {t("nav.postVacancy")}
               </Link>
             </li>
             <li>
               <Link href="/pricing" className="hover:text-brand-700">
-                Tariflar
+                {t("nav.pricing")}
               </Link>
             </li>
           </ul>
         </div>
         <div>
-          <p className="font-semibold text-slate-900">Platforma</p>
+          <p className="font-semibold text-slate-900">{t("nav.platform")}</p>
           <ul className="mt-2 space-y-1">
             <li>
               <Link href="/about" className="hover:text-brand-700">
-                Biz haqimizda
+                {t("nav.about")}
               </Link>
             </li>
             <li>
               <Link href="/privacy" className="hover:text-brand-700">
-                Maxfiylik siyosati
+                {t("nav.privacy")}
               </Link>
             </li>
             <li>
               <Link href="/terms" className="hover:text-brand-700">
-                Foydalanish shartlari
+                {t("nav.terms")}
               </Link>
             </li>
             <li>
               <Link href="/support" className="hover:text-brand-700">
-                Yordam va murojaatlar
+                {t("nav.support")}
               </Link>
             </li>
           </ul>
         </div>
       </Container>
       <div className="border-t border-slate-100 py-4 text-center text-xs text-slate-500">
-        © {new Date().getFullYear()} {SITE_NAME}. Barcha huquqlar himoyalangan.
+        © {new Date().getFullYear()} {SITE_NAME}. {t("common.copyright")}
       </div>
     </footer>
   );

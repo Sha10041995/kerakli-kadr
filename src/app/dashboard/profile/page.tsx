@@ -13,19 +13,24 @@ import {
   ExperienceSection,
   PortfolioSection,
 } from "@/features/candidates/components/profile-sections";
+import { getI18n } from "@/lib/i18n/server";
 import type { CandidateProfileInput } from "@/validations/candidate";
 
-export const metadata: Metadata = { title: "Mening profilim", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("profile.title"), robots: { index: false } };
+}
 
 export default async function CandidateProfilePage(props: PageProps<"/dashboard/profile">) {
   const user = await requireJobSeeker("/dashboard/profile");
   const sp = await props.searchParams;
-  const [{ profile, person }, regions, catalog, skills, professionSkills] = await Promise.all([
+  const [{ profile, person }, regions, catalog, skills, professionSkills, { t }] = await Promise.all([
     getOwnCandidateProfile(user.id),
     getRegions(),
     getCatalog(),
     getSkills(),
     getProfessionSkillsMap(),
+    getI18n(),
   ]);
 
   const defaults: CandidateProfileInput = {
@@ -60,27 +65,27 @@ export default async function CandidateProfilePage(props: PageProps<"/dashboard/
   return (
     <>
       <PageHeader
-        title="Mening profilim"
+        title={t("profile.title")}
         description={
           profile ? (
             <>
-              Profil toʻliqligi: <strong>{profile.completeness}%</strong>
+              {t("profile.completeness")} <strong>{profile.completeness}%</strong>
             </>
           ) : (
-            "Profilingizni toʻldiring — ish beruvchilar sizni hududingiz boʻyicha topadi."
+            t("profile.fillPrompt")
           )
         }
         actions={
           profile ? (
             <Link href={`/candidate/${user.id}`} className="text-brand-700 text-sm font-medium hover:underline">
-              Ommaviy profilni koʻrish →
+              {t("profile.viewPublic")}
             </Link>
           ) : null
         }
       />
       {sp.welcome ? (
         <Alert tone="success" className="mb-4">
-          Xush kelibsiz! Avval asosiy maʼlumotlarni toʻldiring.
+          {t("profile.welcome")}
         </Alert>
       ) : null}
       <Card className="mb-6 flex items-center gap-4">
@@ -103,7 +108,7 @@ export default async function CandidateProfilePage(props: PageProps<"/dashboard/
         </div>
       ) : (
         <Alert tone="info" className="mt-6">
-          Profil saqlangandan soʻng tajriba, taʼlim, sertifikat va portfolio qoʻshishingiz mumkin.
+          {t("profile.sectionsAfterSave")}
         </Alert>
       )}
     </>

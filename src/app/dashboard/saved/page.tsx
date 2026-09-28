@@ -6,13 +6,17 @@ import { requireUser } from "@/features/auth/session";
 import { deleteSavedSearchAction } from "@/features/search/actions";
 import { toQueryString } from "@/features/search/params";
 import { createClient } from "@/lib/supabase/server";
-import { displayName, timeAgo } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: "Saqlanganlar", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("saved.title"), robots: { index: false } };
+}
 
 export default async function SavedPage() {
   const user = await requireUser("/dashboard/saved");
   const supabase = await createClient();
+  const { t, f } = await getI18n();
   const [{ data: searches }, { data: favorites }] = await Promise.all([
     supabase.from("saved_searches").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
     supabase
@@ -27,18 +31,15 @@ export default async function SavedPage() {
   const { data: people } = candidateIds.length
     ? await supabase.from("public_profiles").select("id, first_name, last_name").in("id", candidateIds)
     : { data: [] };
-  const names = new Map((people ?? []).map((p) => [p.id, displayName(p.first_name, p.last_name, true)]));
+  const names = new Map((people ?? []).map((p) => [p.id, f.name(p.first_name, p.last_name, true)]));
 
   return (
     <>
-      <PageHeader
-        title="Saqlanganlar"
-        description="Saqlangan qidiruvlar boʻyicha yangi mos eʼlon chiqsa, bildirishnoma olasiz."
-      />
+      <PageHeader title={t("saved.title")} description={t("saved.intro")} />
       <section className="mb-8">
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">Saqlangan qidiruvlar</h2>
+        <h2 className="mb-3 text-lg font-semibold text-slate-900">{t("saved.searches")}</h2>
         {!searches?.length ? (
-          <EmptyState title="Saqlangan qidiruv yoʻq" description="Qidiruv sahifasida “Qidiruvni saqlash” tugmasini bosing." />
+          <EmptyState title={t("saved.noSearches")} description={t("saved.noSearchesText")} />
         ) : (
           <div className="space-y-2">
             {searches.map((s) => {
@@ -50,11 +51,11 @@ export default async function SavedPage() {
                       {s.name}
                     </Link>
                     <p className="text-xs text-slate-500">
-                      {s.kind === "vacancies" ? "Vakansiyalar" : "Nomzodlar"} ·{" "}
-                      {s.last_notified_at ? `oxirgi xabar ${timeAgo(s.last_notified_at)}` : "hali mos eʼlon chiqmadi"}
+                      {s.kind === "vacancies" ? t("saved.vacancies") : t("saved.candidates")} ·{" "}
+                      {s.last_notified_at ? t("saved.lastNotified", { ago: f.timeAgo(s.last_notified_at) }) : t("saved.notYet")}
                     </p>
                   </div>
-                  <ConfirmButton onConfirm={deleteSavedSearchAction.bind(null, s.id)}>Oʻchirish</ConfirmButton>
+                  <ConfirmButton onConfirm={deleteSavedSearchAction.bind(null, s.id)}>{t("common.delete")}</ConfirmButton>
                 </Card>
               );
             })}
@@ -62,26 +63,27 @@ export default async function SavedPage() {
         )}
       </section>
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">Sevimlilar</h2>
+        <h2 className="mb-3 text-lg font-semibold text-slate-900">{t("saved.favorites")}</h2>
         {!favorites?.length ? (
-          <EmptyState title="Sevimlilar roʻyxati boʻsh" />
+          <EmptyState title={t("saved.noFavorites")} />
         ) : (
           <div className="space-y-2">
             {favorites.map((f) => (
               <Card key={f.id} className="py-3">
                 {f.vacancies ? (
                   <Link href={`/vacancy/${f.vacancies.id}`} className="hover:text-brand-700 font-medium text-slate-900">
-                    Vakansiya: {f.vacancies.title}
+                    {t("saved.vacancy", { title: f.vacancies.title })}
                   </Link>
                 ) : f.candidate_profiles ? (
                   <Link
                     href={`/candidate/${f.candidate_profiles.id}`}
                     className="hover:text-brand-700 font-medium text-slate-900"
                   >
-                    Nomzod: {names.get(f.candidate_profiles.id) ?? "—"} · {f.candidate_profiles.professions?.name_uz}
+                    {t("saved.candidate", { name: names.get(f.candidate_profiles.id) ?? "—" })} ·{" "}
+                    {f.candidate_profiles.professions?.name_uz}
                   </Link>
                 ) : (
-                  <span className="text-sm text-slate-500">Eʼlon mavjud emas</span>
+                  <span className="text-sm text-slate-500">{t("saved.unavailable")}</span>
                 )}
               </Card>
             ))}

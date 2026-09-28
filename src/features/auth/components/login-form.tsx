@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/form";
 import { Alert } from "@/components/ui/misc";
 import { signInAction } from "@/features/auth/actions";
+import { useI18n } from "@/lib/i18n/client";
 import { loginSchema, type LoginInput } from "@/validations/auth";
 
 export function LoginForm({ next }: { next?: string }) {
   const router = useRouter();
+  const { t, tr } = useI18n();
   const [serverError, setServerError] = useState<string | null>(null);
   const { register, handleSubmit, formState } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -29,11 +31,11 @@ export function LoginForm({ next }: { next?: string }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      {serverError ? <Alert tone="danger">{serverError}</Alert> : null}
-      <Field label="Email" htmlFor="email" error={formState.errors.email?.message}>
+      {serverError ? <Alert tone="danger">{tr(serverError)}</Alert> : null}
+      <Field label={t("auth.email")} htmlFor="email" error={formState.errors.email?.message}>
         <Input id="email" type="email" autoComplete="email" aria-invalid={!!formState.errors.email} {...register("email")} />
       </Field>
-      <Field label="Parol" htmlFor="password" error={formState.errors.password?.message}>
+      <Field label={t("auth.password")} htmlFor="password" error={formState.errors.password?.message}>
         <Input
           id="password"
           type="password"
@@ -43,12 +45,12 @@ export function LoginForm({ next }: { next?: string }) {
         />
       </Field>
       <Button type="submit" className="w-full" disabled={formState.isSubmitting}>
-        {formState.isSubmitting ? "Kirilmoqda…" : "Kirish"}
+        {formState.isSubmitting ? t("auth.signingIn") : t("auth.signIn")}
       </Button>
       <p className="text-center text-sm text-slate-600">
-        Hisobingiz yoʻqmi?{" "}
+        {t("auth.noAccount")}{" "}
         <Link href="/register" className="text-brand-700 font-medium hover:underline">
-          Roʻyxatdan oʻting
+          {t("auth.signUpLink")}
         </Link>
       </p>
     </form>

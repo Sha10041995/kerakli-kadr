@@ -12,17 +12,16 @@ import { candidateResponseRate } from "@/features/reputation";
 import { FavoriteButton } from "@/features/favorites/components/favorite-button";
 import { StartChatButton } from "@/features/messaging/components/start-chat-button";
 import { ReportButton } from "@/features/reports/components/report-button";
-import { verificationBadges } from "@/features/verification/levels";
-import { AVAILABILITY_LABELS, EDUCATION_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/lib/i18n/uz";
+import { verificationBadgeKinds } from "@/features/verification/levels";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
-import { displayName, formatDate, formatSalary, timeAgo } from "@/lib/utils";
 
 export async function generateMetadata(props: PageProps<"/candidate/[id]">): Promise<Metadata> {
   const { id } = await props.params;
-  const c = await getCandidate(id);
-  if (!c) return { title: "Profil topilmadi", robots: { index: false } };
-  const name = displayName(c.person?.first_name, c.person?.last_name, true);
-  const prof = c.profile.professions?.name_uz ?? "Mutaxassis";
+  const [c, { t, f }] = await Promise.all([getCandidate(id), getI18n()]);
+  if (!c) return { title: t("candidate.notFound"), robots: { index: false } };
+  const name = f.name(c.person?.first_name, c.person?.last_name, true);
+  const prof = c.profile.professions?.name_uz ?? t("candidate.specialist");
   const place = c.profile.districts?.name_uz ?? c.profile.regions?.name_uz ?? "";
   return {
     title: `${name} — ${prof}${place ? `, ${place}` : ""}`,
@@ -34,7 +33,12 @@ export async function generateMetadata(props: PageProps<"/candidate/[id]">): Pro
 
 export default async function CandidatePage(props: PageProps<"/candidate/[id]">) {
   const { id } = await props.params;
-  const [c, user, responseRate] = await Promise.all([getCandidate(id), getCurrentUser(), candidateResponseRate(id)]);
+  const [c, user, responseRate, { t, d, f }] = await Promise.all([
+    getCandidate(id),
+    getCurrentUser(),
+    candidateResponseRate(id),
+    getI18n(),
+  ]);
   if (!c) notFound();
   const { profile: p, person, reviews } = c;
 
@@ -44,7 +48,7 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
     const { data } = await supabase.from("favorites").select("id").eq("user_id", user.id).eq("candidate_id", id).maybeSingle();
     isFavorite = Boolean(data);
   }
-  const badges = verificationBadges({
+  const badges = verificationBadgeKinds({
     phoneVerified: person?.phone_verified,
     identityVerified: person?.identity_verified,
     certificateVerified: person?.certificate_verified,
@@ -63,33 +67,33 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
             <Avatar src={person?.avatar_url} first={person?.first_name} last={person?.last_name} size={88} />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold text-slate-900">{displayName(person?.first_name, person?.last_name, true)}</h1>
+                <h1 className="text-2xl font-bold text-slate-900">{f.name(person?.first_name, person?.last_name, true)}</h1>
                 {p.is_demo ? <DemoBadge /> : null}
                 {p.premium_until && new Date(p.premium_until) > new Date() ? <Badge tone="premium">Premium</Badge> : null}
-                {!p.is_public ? <Badge>Yashirin profil</Badge> : null}
+                {!p.is_public ? <Badge>{t("candidate.hidden")}</Badge> : null}
               </div>
-              <p className="text-brand-700 text-lg font-medium">{p.professions?.name_uz ?? "Kasb koʻrsatilmagan"}</p>
+              <p className="text-brand-700 text-lg font-medium">{p.professions?.name_uz ?? t("cards.noProfession")}</p>
               {p.headline ? <p className="text-slate-600">{p.headline}</p> : null}
               <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
                 <span className="inline-flex items-center gap-1">
                   <PinIcon size={16} />
-                  {place || "Hudud koʻrsatilmagan"}
+                  {place || t("candidate.noRegion")}
                 </span>
-                <span>Tajriba: {Number(p.experience_years)} yil</span>
+                <span>{t("cards.experience", { n: Number(p.experience_years) })}</span>
                 {p.rating_count ? (
                   <span className="inline-flex items-center gap-1 text-amber-600">
                     <StarIcon size={14} />
                     {Number(p.rating_avg).toFixed(1)} ({p.rating_count})
                   </span>
                 ) : null}
-                {p.completed_jobs ? <span>{p.completed_jobs} ta bajarilgan ish</span> : null}
-                {responseRate != null ? <span>Xabarlarga javob: {responseRate}%</span> : null}
+                {p.completed_jobs ? <span>{t("candidate.completedJobs", { n: p.completed_jobs })}</span> : null}
+                {responseRate != null ? <span>{t("candidate.replyRate", { n: responseRate })}</span> : null}
               </p>
               {badges.length ? (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {badges.map((b) => (
                     <Badge key={b} tone="success">
-                      <ShieldIcon size={12} /> {b}
+                      <ShieldIcon size={12} /> {t(`candidate.badge.${b}`)}
                     </Badge>
                   ))}
                 </div>
@@ -99,14 +103,14 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
 
           {p.about ? (
             <Card>
-              <h2 className="mb-2 text-lg font-semibold text-slate-900">Oʻzi haqida</h2>
+              <h2 className="mb-2 text-lg font-semibold text-slate-900">{t("candidate.about")}</h2>
               <p className="text-sm whitespace-pre-line text-slate-700">{p.about}</p>
             </Card>
           ) : null}
 
           {p.candidate_skills?.length ? (
             <Card>
-              <h2 className="mb-3 text-lg font-semibold text-slate-900">Koʻnikmalar</h2>
+              <h2 className="mb-3 text-lg font-semibold text-slate-900">{t("candidate.skills")}</h2>
               <div className="flex flex-wrap gap-2">
                 {p.candidate_skills.map((s) =>
                   s.skills ? (
@@ -122,7 +126,7 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
 
           {p.candidate_experience?.length ? (
             <Card>
-              <h2 className="mb-3 text-lg font-semibold text-slate-900">Ish tajribasi</h2>
+              <h2 className="mb-3 text-lg font-semibold text-slate-900">{t("candidate.experience")}</h2>
               <ol className="border-brand-100 space-y-4 border-l-2 pl-4">
                 {[...p.candidate_experience]
                   .sort((a, b) => b.start_date.localeCompare(a.start_date))
@@ -134,7 +138,7 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
                         {e.location_text ? `, ${e.location_text}` : ""}
                       </p>
                       <p className="text-xs text-slate-500">
-                        {formatDate(e.start_date)} – {e.is_current ? "hozirgacha" : formatDate(e.end_date)}
+                        {f.date(e.start_date)} – {e.is_current ? t("candidate.present") : f.date(e.end_date)}
                       </p>
                       {e.description ? <p className="mt-1 text-sm text-slate-700">{e.description}</p> : null}
                     </li>
@@ -147,13 +151,13 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
             <Card className="grid gap-6 sm:grid-cols-2">
               {p.candidate_education?.length ? (
                 <div>
-                  <h2 className="mb-3 text-lg font-semibold text-slate-900">Taʼlim</h2>
+                  <h2 className="mb-3 text-lg font-semibold text-slate-900">{t("candidate.education")}</h2>
                   <ul className="space-y-2 text-sm">
                     {p.candidate_education.map((e) => (
                       <li key={e.id}>
                         <p className="font-medium text-slate-900">{e.institution}</p>
                         <p className="text-slate-600">
-                          {EDUCATION_LABELS[e.level]}
+                          {d.enums.education[e.level]}
                           {e.field ? ` · ${e.field}` : ""}
                           {e.end_year ? ` · ${e.end_year}` : ""}
                         </p>
@@ -164,7 +168,7 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
               ) : null}
               {p.candidate_certificates?.length ? (
                 <div>
-                  <h2 className="mb-3 text-lg font-semibold text-slate-900">Sertifikatlar</h2>
+                  <h2 className="mb-3 text-lg font-semibold text-slate-900">{t("candidate.certificates")}</h2>
                   <ul className="space-y-2 text-sm">
                     {p.candidate_certificates.map((cert) => (
                       <li key={cert.id}>
@@ -172,7 +176,7 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
                           {cert.name} {cert.is_verified ? <span className="text-emerald-700">✓</span> : null}
                         </p>
                         <p className="text-slate-600">
-                          {[cert.issuer, cert.issued_at ? formatDate(cert.issued_at) : null].filter(Boolean).join(" · ")}
+                          {[cert.issuer, cert.issued_at ? f.date(cert.issued_at) : null].filter(Boolean).join(" · ")}
                         </p>
                       </li>
                     ))}
@@ -184,7 +188,7 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
 
           {p.candidate_portfolio?.length ? (
             <Card>
-              <h2 className="mb-3 text-lg font-semibold text-slate-900">Portfolio</h2>
+              <h2 className="mb-3 text-lg font-semibold text-slate-900">{t("candidate.portfolio")}</h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 {p.candidate_portfolio.map((item) => (
                   <div key={item.id} className="rounded-lg border border-slate-100 p-3">
@@ -205,7 +209,7 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
                         rel="noopener noreferrer nofollow ugc"
                         className="text-brand-700 text-xs hover:underline"
                       >
-                        Havola ↗
+                        {t("candidate.link")}
                       </a>
                     ) : null}
                   </div>
@@ -216,7 +220,7 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
 
           {reviews.length ? (
             <Card>
-              <h2 className="mb-3 text-lg font-semibold text-slate-900">Ish beruvchilar sharhlari</h2>
+              <h2 className="mb-3 text-lg font-semibold text-slate-900">{t("candidate.employerReviews")}</h2>
               <ul className="space-y-3">
                 {reviews.map((r) => (
                   <li key={r.id} className="border-b border-slate-100 pb-3 last:border-0">
@@ -226,7 +230,9 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
                       ))}
                     </p>
                     {r.comment ? <p className="text-sm text-slate-700">{r.comment}</p> : null}
-                    <p className="text-xs text-slate-500">{timeAgo(r.created_at)} · tasdiqlangan ish jarayonidan keyin</p>
+                    <p className="text-xs text-slate-500">
+                      {f.timeAgo(r.created_at)} · {t("candidate.afterVerifiedJob")}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -236,37 +242,37 @@ export default async function CandidatePage(props: PageProps<"/candidate/[id]">)
 
         <aside className="space-y-4">
           <Card id="contact" className="scroll-mt-24 space-y-3">
-            <p className="text-sm text-slate-500">Kutilayotgan maosh</p>
+            <p className="text-sm text-slate-500">{t("candidate.expectedSalary")}</p>
             <p className="text-lg font-semibold text-slate-900">
-              {formatSalary(p.expected_salary_min, p.expected_salary_max, p.salary_type)}
+              {f.salary(p.expected_salary_min, p.expected_salary_max, p.salary_type)}
             </p>
-            <Badge tone={p.availability === "immediately" ? "success" : "neutral"}>{AVAILABILITY_LABELS[p.availability]}</Badge>
-            <p className="text-sm text-slate-600">{p.employment_types.map((t) => EMPLOYMENT_TYPE_LABELS[t]).join(", ")}</p>
+            <Badge tone={p.availability === "immediately" ? "success" : "neutral"}>{d.enums.availability[p.availability]}</Badge>
+            <p className="text-sm text-slate-600">{p.employment_types.map((et) => d.enums.employmentType[et]).join(", ")}</p>
             <ul className="text-sm text-slate-600">
-              {p.has_transport ? <li>✓ Shaxsiy transporti bor</li> : null}
-              {p.remote_ok ? <li>✓ Masofadan ishlay oladi</li> : null}
-              <li>✓ {p.work_radius_km} km gacha masofada ishlashga tayyor</li>
+              {p.has_transport ? <li>{t("candidate.hasTransport")}</li> : null}
+              {p.remote_ok ? <li>{t("candidate.remoteOk")}</li> : null}
+              <li>{t("candidate.radius", { n: p.work_radius_km })}</li>
             </ul>
             {isOwner ? (
               <Link href="/dashboard/profile" className="text-brand-700 block text-sm font-medium hover:underline">
-                Profilni tahrirlash →
+                {t("candidate.editProfile")}
               </Link>
             ) : user?.isEmployer ? (
-              <StartChatButton otherUserId={id} label="Xabar yozish" />
+              <StartChatButton otherUserId={id} label={t("candidate.writeMessage")} />
             ) : !user ? (
               <p className="text-sm text-slate-600">
-                Bogʻlanish uchun{" "}
+                {t("candidate.contactPrefix")}{" "}
                 <Link href={`/login?next=/candidate/${id}`} className="text-brand-700 font-medium hover:underline">
-                  ish beruvchi sifatida kiring
+                  {t("candidate.loginAsEmployer")}
                 </Link>
                 .
               </p>
             ) : null}
-            <p className="text-xs text-slate-500">
-              Telefon raqam ommaga koʻrsatilmaydi — nomzod ariza yuborganda ish beruvchiga ochiladi.
-            </p>
+            <p className="text-xs text-slate-500">{t("candidate.phoneHidden")}</p>
           </Card>
-          {p.lat != null && p.lng != null ? <LocationMap lat={p.lat} lng={p.lng} radiusKm={6} label="Taxminiy hudud" /> : null}
+          {p.lat != null && p.lng != null ? (
+            <LocationMap lat={p.lat} lng={p.lng} radiusKm={6} label={t("candidate.approxArea")} />
+          ) : null}
           {user && !isOwner ? (
             <div className="flex items-center justify-between">
               <FavoriteButton kind="candidate" targetId={id} initial={isFavorite} />

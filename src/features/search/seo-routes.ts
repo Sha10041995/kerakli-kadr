@@ -2,6 +2,9 @@
 //   /jobs/toshkent, /jobs/toshkent/yunusobod, /jobs/xorazm/urganch-shahri/payvandchi,
 //   /candidates/toshkent/elektrik, /candidates/elektrik
 // Segments are resolved against the database; unknown combinations -> 404.
+import type { Locale } from "@/lib/i18n/config";
+import { search } from "@/lib/i18n/messages/public";
+import { format } from "@/lib/i18n/translate";
 
 export type SeoLookup = {
   region(slug: string): Promise<{ id: number; name: string } | null>;
@@ -48,18 +51,12 @@ export async function resolveSeoSegments(segments: string[], lookup: SeoLookup):
   return out;
 }
 
-export function seoTitle(kind: "jobs" | "candidates", r: SeoResolution): string {
+export function seoTitle(kind: "jobs" | "candidates", r: SeoResolution, locale: Locale = "uz"): string {
   const place = r.district?.name ?? r.region?.name;
-  if (kind === "jobs") {
-    if (r.profession && place) return `${place}da ${r.profession.name} vakansiyalari`;
-    if (r.profession) return `${r.profession.name} vakansiyalari`;
-    if (place) return `${place}dagi ish oʻrinlari`;
-    return "Ish oʻrinlari — vakansiyalar";
-  }
-  if (r.profession && place) return `${place}dagi ${r.profession.name} mutaxassislar`;
-  if (r.profession) return `${r.profession.name} mutaxassislar`;
-  if (place) return `${place}dagi kadrlar`;
-  return "Kadrlar — mutaxassislar bazasi";
+  const profession = r.profession?.name;
+  const prefix = kind === "jobs" ? "jobs" : "talent";
+  const key = `${prefix}${profession ? "Profession" : ""}${place ? "Place" : ""}` as keyof typeof search.seo;
+  return format(search.seo[key][locale], { place: place ?? "", profession: profession ?? "" });
 }
 
 export function seoPath(kind: "jobs" | "candidates", r: SeoResolution): string {

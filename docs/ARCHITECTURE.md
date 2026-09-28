@@ -59,8 +59,8 @@ tests/unit, tests/e2e     # Vitest va Playwright
 | Bildirishnoma kanallari        | `features/notifications/channels.ts` (email/Telegram/SMS) |
 | AI (CV tahlili, tarjima, spam) | `features/ai` (`AiProvider`, hozircha `noAiProvider`)     |
 | Chat moderatsiyasi             | `features/messaging/moderation.ts` + DB flag              |
-| Rate-limit ombori              | `lib/rate-limit.ts` (`RateLimitStore` → Redis)            |
-| Til (ru/en)                    | `lib/i18n/*`, bazada `name_ru`, `name_en`                 |
+| Rate-limit ombori              | ✅ Postgres (`rate_limit_hit`); kerak boʻlsa Redis        |
+| Til (ru/en)                    | ✅ `lib/i18n/*`; keyin: bazadagi `name_ru`, `name_en`     |
 | Kelajakdagi rollar             | `app_role`: `partner`, `recruiter` allaqachon mavjud      |
 
 ## Nima uchun shunday qarorlar
@@ -72,3 +72,16 @@ tests/unit, tests/e2e     # Vitest va Playwright
 - **MATCH SCORE TypeScript'da** — SQL xususiyatlarni (masofa, tier, koʻnikma mosligi…) qaytaradi, ball esa sof
   funksiyada hisoblanadi: tushunarli, unit-testlanadigan, admin vaznlari bilan boshqariladi.
 - **Kategoriya → subkategoriya** `categories.parent_id` orqali (alohida `subcategories` jadvali oʻrniga).
+
+## Koʻp tillilik (i18n)
+
+- Tillar: `uz` (standart), `ru`, `en`. Tanlangan til `locale` cookie'sida (1 yil), `LocaleSwitcher` header/footerda.
+- Lugʻat: `src/lib/i18n/messages/*.ts` — har bir satr `{ uz, ru, en }` koʻrinishida yonma-yon; unit test har bir
+  satrda uchala til borligini va `{placeholder}`lar mosligini tekshiradi.
+- Server komponentlar: `const { t, d, f } = await getI18n()`; client komponentlar: `useI18n()`
+  (`t` — kalit, `d` — lugʻat obyekti, masalan `d.enums.employmentType`, `f` — sana/maosh/masofa formatlari).
+- Server actions xabar **kalitini** qaytaradi (`errors.RATE_LIMITED`, `success.saved`,
+  `validation.maxChars?max=120`); mijoz `tr()` bilan tarjima qiladi. Zod xatolari ham kalit (`validations/common.ts`).
+- Admin panel faqat oʻzbek tilida (`lib/i18n/uz.ts` lugʻatdan olinadi).
+- Hozircha tarjima qilinmaganlar: bazadagi kontent (hudud/kasb nomlari, tarif tavsiflari, trigger
+  bildirishnomalari, email matni) — `name_ru/name_en` ustunlari bilan keyingi bosqichda.

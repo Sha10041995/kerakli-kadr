@@ -3,12 +3,12 @@ import { locationFields, safeUrl, text } from "./common";
 
 export const companySchema = z
   .object({
-    name: z.string().trim().min(2, { error: "Nomini kiriting" }).max(160),
+    name: z.string().trim().min(2, { error: "validation.name" }).max(160),
     companyType: z.enum(["individual", "sole_proprietor", "llc", "farm", "state", "ngo", "other"]),
     stir: z
       .string()
       .trim()
-      .regex(/^\d{9}$/, { error: "STIR 9 ta raqamdan iborat" })
+      .regex(/^\d{9}$/, { error: "validation.stir" })
       .optional()
       .or(z.literal("")),
     description: text(5000).optional(),
@@ -18,7 +18,7 @@ export const companySchema = z
   })
   .refine((v) => v.companyType === "individual" || !!v.stir, {
     path: ["stir"],
-    error: "Yuridik shaxslar uchun STIR majburiy",
+    error: "validation.stirRequired",
   })
-  .refine((v) => v.regionId != null, { path: ["regionId"], error: "Viloyatni tanlang" });
+  .refine((v) => v.regionId != null, { path: ["regionId"], error: "validation.region" });
 export type CompanyInput = z.input<typeof companySchema>;

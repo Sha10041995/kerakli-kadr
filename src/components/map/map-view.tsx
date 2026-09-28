@@ -2,6 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef } from "react";
+import { useI18n } from "@/lib/i18n/client";
 
 export type MapItem = {
   id: string;
@@ -29,6 +30,8 @@ function escape(s: string) {
 export function MapView({ items, height = 420, label }: { items: MapItem[]; height?: number; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
+  const { t } = useI18n();
+  const moreLabel = t("cards.mapMore");
   useEffect(() => {
     let disposed = false;
     let map: import("leaflet").Map | undefined;
@@ -54,7 +57,7 @@ export function MapView({ items, height = 420, label }: { items: MapItem[]; heig
                 fillOpacity: 0.9,
               });
         const html = `<strong>${escape(it.label)}</strong>${it.sublabel ? `<br/><span>${escape(it.sublabel)}</span>` : ""}${
-          it.href ? `<br/><a href="${escape(it.href)}">Batafsil →</a>` : ""
+          it.href ? `<br/><a href="${escape(it.href)}">${escape(moreLabel)}</a>` : ""
         }`;
         layer.bindPopup(html);
         layer.addTo(map);
@@ -69,7 +72,7 @@ export function MapView({ items, height = 420, label }: { items: MapItem[]; heig
       disposed = true;
       map?.remove();
     };
-  }, [items]);
+  }, [items, moreLabel]);
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100">

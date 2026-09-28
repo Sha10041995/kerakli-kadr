@@ -9,11 +9,11 @@ import { verificationRequestSchema } from "@/validations/misc";
 
 export async function requestVerificationAction(formData: FormData): Promise<ActionResult> {
   const parsed = verificationRequestSchema.safeParse({ type: formData.get("type"), note: formData.get("note") || undefined });
-  if (!parsed.success) return fail("Maʼlumotlarni tekshiring", fieldErrors(parsed.error));
+  if (!parsed.success) return fail("errors.checkInput", fieldErrors(parsed.error));
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub;
-  if (!userId) return fail("Iltimos, avval tizimga kiring.");
+  if (!userId) return fail("errors.loginRequired");
 
   let companyId: string | null = null;
   if (parsed.data.type === "company") {
@@ -24,7 +24,7 @@ export async function requestVerificationAction(formData: FormData): Promise<Act
       .eq("member_role", "owner")
       .limit(1)
       .maybeSingle();
-    if (!data) return fail("Avval kompaniya profilini yarating.");
+    if (!data) return fail("errors.COMPANY_REQUIRED");
     companyId = data.company_id;
   }
 
@@ -35,7 +35,7 @@ export async function requestVerificationAction(formData: FormData): Promise<Act
     if (!up.ok) return fail(up.error);
     documentPath = up.path;
   } else if (parsed.data.type !== "phone") {
-    return fail("Hujjat faylini biriktiring.");
+    return fail("errors.fileRequired");
   }
 
   const { error } = await supabase.from("verification_requests").insert({
@@ -46,9 +46,9 @@ export async function requestVerificationAction(formData: FormData): Promise<Act
     note: parsed.data.note || null,
   });
   if (error) {
-    if (error.code === "23505") return fail("Bu turdagi soʻrovingiz allaqachon koʻrib chiqilmoqda.");
+    if (error.code === "23505") return fail("errors.verificationPending");
     return fail(toUserMessage(error));
   }
   revalidatePath("/dashboard/verification");
-  return { ok: true, message: "Soʻrov yuborildi. Moderatorlar 1–2 ish kunida koʻrib chiqadi." };
+  return { ok: true, message: "success.verificationSent" };
 }

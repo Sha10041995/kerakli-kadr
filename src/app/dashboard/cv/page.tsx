@@ -5,26 +5,29 @@ import { PrintButton } from "@/components/ui/print-button";
 import { requireJobSeeker } from "@/features/auth/session";
 import { getCandidate } from "@/features/candidates/queries";
 import { createClient } from "@/lib/supabase/server";
-import { AVAILABILITY_LABELS, EDUCATION_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/lib/i18n/uz";
-import { formatDate, formatSalary } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: "CV", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("cv.title"), robots: { index: false } };
+}
 
 /** Auto-generated CV from the profile (HTML preview; browser "Print → Save as PDF"). */
 export default async function CvPage() {
   const user = await requireJobSeeker("/dashboard/cv");
-  const [c, { data: contact }] = await Promise.all([
+  const [c, { data: contact }, { t, d, f }] = await Promise.all([
     getCandidate(user.id),
     (await createClient()).from("profiles").select("phone, email, birth_year").eq("id", user.id).maybeSingle(),
+    getI18n(),
   ]);
   if (!c) {
     return (
       <Alert tone="info">
-        CV yaratish uchun avval{" "}
+        {t("cv.needProfileBefore")}{" "}
         <Link href="/dashboard/profile" className="underline">
-          profilingizni
+          {t("cv.needProfileLink")}
         </Link>{" "}
-        toʻldiring.
+        {t("cv.needProfileAfter")}
       </Alert>
     );
   }
@@ -34,11 +37,7 @@ export default async function CvPage() {
   return (
     <>
       <div className="no-print">
-        <PageHeader
-          title="Mening CV"
-          description="Profilingizdan avtomatik yaratildi. PDF uchun “Chop etish → PDF sifatida saqlash”ni tanlang."
-          actions={<PrintButton />}
-        />
+        <PageHeader title={t("cv.title")} description={t("cv.intro")} actions={<PrintButton />} />
       </div>
       <article className="mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm print:border-0 print:p-0 print:shadow-none">
         <header className="flex items-center gap-5 border-b border-slate-200 pb-6">
@@ -50,7 +49,7 @@ export default async function CvPage() {
             <p className="text-brand-700 text-lg">{p.professions?.name_uz}</p>
             {p.headline ? <p className="text-slate-600">{p.headline}</p> : null}
             <p className="mt-2 text-sm text-slate-600">
-              {[contact?.phone, contact?.email, place, contact?.birth_year ? `${contact.birth_year}-yil` : null]
+              {[contact?.phone, contact?.email, place, contact?.birth_year ? t("cv.birthYear", { y: contact.birth_year }) : null]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
@@ -58,29 +57,29 @@ export default async function CvPage() {
         </header>
         {p.about ? (
           <section className="mt-6">
-            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">Men haqimda</h2>
+            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">{t("cv.aboutMe")}</h2>
             <p className="mt-2 text-sm whitespace-pre-line text-slate-800">{p.about}</p>
           </section>
         ) : null}
         <section className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
           <p>
-            <span className="text-slate-500">Tajriba:</span> {Number(p.experience_years)} yil
+            <span className="text-slate-500">{t("cv.experience")}</span> {t("common.years", { n: Number(p.experience_years) })}
           </p>
           <p>
-            <span className="text-slate-500">Mavjudlik:</span> {AVAILABILITY_LABELS[p.availability]}
+            <span className="text-slate-500">{t("cv.availability")}</span> {d.enums.availability[p.availability]}
           </p>
           <p>
-            <span className="text-slate-500">Ish turi:</span>{" "}
-            {p.employment_types.map((t) => EMPLOYMENT_TYPE_LABELS[t]).join(", ")}
+            <span className="text-slate-500">{t("cv.employmentType")}</span>{" "}
+            {p.employment_types.map((et) => d.enums.employmentType[et]).join(", ")}
           </p>
           <p>
-            <span className="text-slate-500">Kutilayotgan maosh:</span>{" "}
-            {formatSalary(p.expected_salary_min, p.expected_salary_max, p.salary_type)}
+            <span className="text-slate-500">{t("cv.expectedSalary")}</span>{" "}
+            {f.salary(p.expected_salary_min, p.expected_salary_max, p.salary_type)}
           </p>
         </section>
         {p.candidate_experience?.length ? (
           <section className="mt-6">
-            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">Ish tajribasi</h2>
+            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">{t("cv.workExperience")}</h2>
             <ul className="mt-2 space-y-3">
               {[...p.candidate_experience]
                 .sort((a, b) => b.start_date.localeCompare(a.start_date))
@@ -90,7 +89,7 @@ export default async function CvPage() {
                       {e.position} — {e.company_name}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {formatDate(e.start_date)} – {e.is_current ? "hozirgacha" : formatDate(e.end_date)}
+                      {f.date(e.start_date)} – {e.is_current ? t("candidate.present") : f.date(e.end_date)}
                     </p>
                     {e.description ? <p className="text-sm text-slate-700">{e.description}</p> : null}
                   </li>
@@ -100,11 +99,11 @@ export default async function CvPage() {
         ) : null}
         {p.candidate_education?.length ? (
           <section className="mt-6">
-            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">Taʼlim</h2>
+            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">{t("cv.education")}</h2>
             <ul className="mt-2 space-y-2 text-sm">
               {p.candidate_education.map((e) => (
                 <li key={e.id}>
-                  <span className="font-semibold text-slate-900">{e.institution}</span> — {EDUCATION_LABELS[e.level]}
+                  <span className="font-semibold text-slate-900">{e.institution}</span> — {d.enums.education[e.level]}
                   {e.field ? `, ${e.field}` : ""}
                   {e.end_year ? ` (${e.end_year})` : ""}
                 </li>
@@ -114,7 +113,7 @@ export default async function CvPage() {
         ) : null}
         {p.candidate_skills?.length ? (
           <section className="mt-6">
-            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">Koʻnikmalar</h2>
+            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">{t("cv.skills")}</h2>
             <p className="mt-2 text-sm text-slate-800">
               {p.candidate_skills
                 .map((s) => s.skills?.name_uz)
@@ -125,13 +124,13 @@ export default async function CvPage() {
         ) : null}
         {p.candidate_certificates?.length ? (
           <section className="mt-6">
-            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">Sertifikatlar</h2>
+            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">{t("cv.certificates")}</h2>
             <ul className="mt-2 space-y-1 text-sm">
               {p.candidate_certificates.map((cert) => (
                 <li key={cert.id}>
                   {cert.name}
                   {cert.issuer ? ` — ${cert.issuer}` : ""}
-                  {cert.issued_at ? ` (${formatDate(cert.issued_at)})` : ""}
+                  {cert.issued_at ? ` (${f.date(cert.issued_at)})` : ""}
                 </li>
               ))}
             </ul>
@@ -139,7 +138,7 @@ export default async function CvPage() {
         ) : null}
         {p.candidate_portfolio?.length ? (
           <section className="mt-6">
-            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">Portfolio</h2>
+            <h2 className="text-sm font-bold tracking-wide text-slate-500 uppercase">{t("cv.portfolio")}</h2>
             <ul className="mt-2 space-y-1 text-sm">
               {p.candidate_portfolio.map((item) => (
                 <li key={item.id}>
@@ -150,7 +149,7 @@ export default async function CvPage() {
             </ul>
           </section>
         ) : null}
-        <footer className="mt-8 border-t border-slate-100 pt-3 text-xs text-slate-400">KADR TOP UZ orqali yaratildi</footer>
+        <footer className="mt-8 border-t border-slate-100 pt-3 text-xs text-slate-400">{t("cv.generatedBy")}</footer>
       </article>
     </>
   );

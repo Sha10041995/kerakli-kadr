@@ -16,16 +16,17 @@ import { VacancyCard } from "@/features/vacancies/components/vacancy-card";
 import { searchVacancies } from "@/features/vacancies/queries";
 import { isSupabaseConfigured } from "@/lib/env";
 import { MapView } from "@/components/map/map-view";
-import { formatNumber, formatSalary } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata(props: PageProps<"/jobs/[[...slug]]">): Promise<Metadata> {
   const { slug } = await props.params;
   const resolved = await resolveSearchPath(slug, parseVacancySearch({}));
-  if (!resolved) return { title: "Sahifa topilmadi" };
-  const title = seoTitle("jobs", resolved.seo);
+  const { locale, t } = await getI18n();
+  if (!resolved) return { title: t("common.notFoundTitle") };
+  const title = seoTitle("jobs", resolved.seo, locale);
   return {
     title,
-    description: `${title}. Oʻz hududingizdagi eng yangi ish oʻrinlari — masofa, maosh va ish turi boʻyicha filtrlang.`,
+    description: t("search.jobsDescription", { title }),
     alternates: { canonical: seoPath("jobs", resolved.seo) },
   };
 }
@@ -36,7 +37,7 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
   if (!resolved) notFound();
   const { search, seo } = resolved;
 
-  const [{ rows, total, error }, regions, catalog, user, locationLabel] = await Promise.all([
+  const [{ rows, total, error }, regions, catalog, user, locationLabel, { locale, t, f }] = await Promise.all([
     searchVacancies(search),
     getRegions(),
     getCatalog(),
@@ -47,6 +48,7 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
       settlementId: search.settlement,
       mahallaId: search.mahalla,
     }),
+    getI18n(),
   ]);
   logSearch({
     kind: "vacancies",
@@ -73,11 +75,12 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
   return (
     <Container className="py-6 sm:py-8">
       <PageHeader
-        title={seoTitle("jobs", seo)}
+        title={seoTitle("jobs", seo, locale)}
         description={
           <>
-            {locationLabel ? <span className="font-medium text-slate-800">{locationLabel}</span> : "Butun Oʻzbekiston"}
-            {search.radius ? ` · ${search.radius} km radius` : ""} — <strong>{formatNumber(total)}</strong> ta vakansiya topildi
+            {locationLabel ? <span className="font-medium text-slate-800">{locationLabel}</span> : t("search.wholeCountry")}
+            {search.radius ? t("search.radiusSuffix", { n: search.radius }) : ""} —{" "}
+            <strong>{t("search.vacanciesFound", { n: f.number(total) })}</strong>
           </>
         }
         actions={
@@ -85,33 +88,33 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
             <SaveSearchButton
               kind="vacancies"
               search={search}
-              label={[profession?.name, locationLabel].filter(Boolean).join(" · ") || "Vakansiyalar"}
+              label={[profession?.name, locationLabel].filter(Boolean).join(" · ") || t("search.vacanciesLabel")}
             />
           ) : null
         }
       />
       {!isSupabaseConfigured() ? (
         <Alert tone="warning" className="mb-4">
-          Maʼlumotlar bazasi ulanmagan. <code>.env.local</code> faylida Supabase sozlamalarini kiriting.
+          {t("search.dbNotConfigured")}
         </Alert>
       ) : null}
       {error ? (
         <Alert tone="danger" className="mb-4">
-          Qidiruvda xatolik yuz berdi. Iltimos, qayta urinib koʻring.
+          {t("search.searchError")}
         </Alert>
       ) : null}
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
         <aside>
           <VacancyFilters search={search} regions={regions} catalog={catalog} />
         </aside>
-        <section aria-label="Vakansiyalar roʻyxati" className="space-y-4">
+        <section aria-label={t("search.vacancyList")} className="space-y-4">
           <div className="flex items-center justify-end gap-2 text-sm">
             <Link
               href={hrefWith({ view: undefined, page: search.page })}
               aria-current={!isMap ? "page" : undefined}
               className={isMap ? "text-slate-600 hover:underline" : "text-brand-700 font-semibold"}
             >
-              Roʻyxat
+              {t("search.listView")}
             </Link>
             <span className="text-slate-300">|</span>
             <Link
@@ -119,13 +122,13 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
               aria-current={isMap ? "page" : undefined}
               className={isMap ? "text-brand-700 font-semibold" : "text-slate-600 hover:underline"}
             >
-              Xaritada koʻrish
+              {t("search.mapView")}
             </Link>
           </div>
           {isMap ? (
             <div className="">
               <MapView
-                label="Vakansiyalar xaritasi"
+                label={t("search.vacancyMap")}
                 items={rows
                   .filter((v) => v.lat != null && v.lng != null)
                   .map((v) => ({
@@ -133,10 +136,7 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
                     lat: v.lat!,
                     lng: v.lng!,
                     label: v.title ?? "",
-                    sublabel: [
-                      v.company_name,
-                      formatSalary(v.salary_min, v.salary_max, v.salary_type, v.salary_currency ?? "UZS"),
-                    ]
+                    sublabel: [v.company_name, f.salary(v.salary_min, v.salary_max, v.salary_type, v.salary_currency ?? "UZS")]
                       .filter(Boolean)
                       .join(" · "),
                     href: `/vacancy/${v.id}`,
@@ -147,11 +147,11 @@ export default async function JobsPage(props: PageProps<"/jobs/[[...slug]]">) {
           ) : null}
           {rows.length === 0 ? (
             <EmptyState
-              title="Mos vakansiya topilmadi"
-              description="Radiusni kengaytiring yoki boshqa tuman/kasbni tanlang. Qidiruvni saqlasangiz, yangi vakansiya chiqqanda xabar beramiz."
+              title={t("search.noVacancies")}
+              description={t("search.noVacanciesText")}
               action={
                 <Link href="/jobs" className="text-brand-700 text-sm font-medium hover:underline">
-                  Barcha vakansiyalar
+                  {t("search.allVacancies")}
                 </Link>
               }
             />

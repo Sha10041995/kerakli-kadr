@@ -17,16 +17,17 @@ import { resolveSearchPath } from "@/features/search/resolve";
 import { seoPath, seoTitle } from "@/features/search/seo-routes";
 import { isSupabaseConfigured } from "@/lib/env";
 import { MapView } from "@/components/map/map-view";
-import { displayName, formatNumber } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata(props: PageProps<"/candidates/[[...slug]]">): Promise<Metadata> {
   const { slug } = await props.params;
   const resolved = await resolveSearchPath(slug, parseCandidateSearch({}));
-  if (!resolved) return { title: "Sahifa topilmadi" };
-  const title = seoTitle("candidates", resolved.seo);
+  const { locale, t } = await getI18n();
+  if (!resolved) return { title: t("common.notFoundTitle") };
+  const title = seoTitle("candidates", resolved.seo, locale);
   return {
     title,
-    description: `${title}: tajriba, masofa, reyting va mavjudlik boʻyicha saralangan mahalliy mutaxassislar.`,
+    description: t("search.candidatesDescription", { title }),
     alternates: { canonical: seoPath("candidates", resolved.seo) },
   };
 }
@@ -37,7 +38,7 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
   if (!resolved) notFound();
   const { search, seo } = resolved;
 
-  const [{ rows, total, error }, regions, catalog, user, locationLabel] = await Promise.all([
+  const [{ rows, total, error }, regions, catalog, user, locationLabel, { locale, t, f }] = await Promise.all([
     searchCandidates(search),
     getRegions(),
     getCatalog(),
@@ -48,6 +49,7 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
       settlementId: search.settlement,
       mahallaId: search.mahalla,
     }),
+    getI18n(),
   ]);
   logSearch({
     kind: "candidates",
@@ -75,26 +77,26 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
   return (
     <Container className="py-6 sm:py-8">
       <PageHeader
-        title={seoTitle("candidates", seo)}
-        description="Natijalar hudud va masofa boʻyicha tartiblangan — eng yaqin mutaxassislar birinchi. Nomzodlarning aniq manzili hech qachon koʻrsatilmaydi."
+        title={seoTitle("candidates", seo, locale)}
+        description={t("search.candidatesIntro")}
         actions={
           user ? (
             <SaveSearchButton
               kind="candidates"
               search={search}
-              label={[profession?.name, locationLabel].filter(Boolean).join(" · ") || "Kadrlar"}
+              label={[profession?.name, locationLabel].filter(Boolean).join(" · ") || t("search.candidatesLabel")}
             />
           ) : null
         }
       />
       {!isSupabaseConfigured() ? (
         <Alert tone="warning" className="mb-4">
-          Maʼlumotlar bazasi ulanmagan. <code>.env.local</code> faylida Supabase sozlamalarini kiriting.
+          {t("search.dbNotConfigured")}
         </Alert>
       ) : null}
       {error ? (
         <Alert tone="danger" className="mb-4">
-          Qidiruvda xatolik yuz berdi.
+          {t("search.searchError")}
         </Alert>
       ) : null}
 
@@ -104,14 +106,14 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
             <UsersIcon size={24} />
           </span>
           <p className="text-brand-900 text-base sm:text-lg">
-            <strong>{locationLabel ?? "Yaqin atrofda"}</strong>
-            {search.radius ? ` (${search.radius} km)` : ""} — <strong>{formatNumber(total)}</strong> ta{" "}
-            {profession.name.toLowerCase()} mavjud.
+            <strong>{locationLabel ?? t("search.nearby")}</strong>
+            {search.radius ? ` (${t("search.km", { n: search.radius })})` : ""} —{" "}
+            {t("search.talentAvailable", { n: f.number(total), profession: profession.name.toLowerCase() })}
           </p>
         </Card>
       ) : (
         <p className="mb-4 text-sm text-slate-600">
-          {locationLabel ?? "Butun Oʻzbekiston"} — <strong>{formatNumber(total)}</strong> ta nomzod
+          {locationLabel ?? t("search.wholeCountry")} — <strong>{t("search.candidatesFound", { n: f.number(total) })}</strong>
         </p>
       )}
 
@@ -119,14 +121,14 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
         <aside>
           <CandidateFilters search={search} regions={regions} catalog={catalog} />
         </aside>
-        <section aria-label="Nomzodlar roʻyxati" className="grid gap-4 xl:grid-cols-2 xl:content-start">
+        <section aria-label={t("search.candidateList")} className="grid gap-4 xl:grid-cols-2 xl:content-start">
           <div className="flex items-center justify-end gap-2 text-sm xl:col-span-2">
             <Link
               href={hrefWith({ view: undefined, page: search.page })}
               aria-current={!isMap ? "page" : undefined}
               className={isMap ? "text-slate-600 hover:underline" : "text-brand-700 font-semibold"}
             >
-              Roʻyxat
+              {t("search.listView")}
             </Link>
             <span className="text-slate-300">|</span>
             <Link
@@ -134,39 +136,37 @@ export default async function CandidatesPage(props: PageProps<"/candidates/[[...
               aria-current={isMap ? "page" : undefined}
               className={isMap ? "text-brand-700 font-semibold" : "text-slate-600 hover:underline"}
             >
-              Xaritada koʻrish
+              {t("search.mapView")}
             </Link>
           </div>
           {isMap ? (
             <div className="xl:col-span-2">
               <MapView
-                label="Nomzodlar taxminiy joylashuvi"
+                label={t("search.candidateMap")}
                 items={rows
                   .filter((c) => c.lat != null && c.lng != null)
                   .map((c) => ({
                     id: c.id!,
                     lat: c.lat!,
                     lng: c.lng!,
-                    label: displayName(c.first_name, c.last_initial, true),
+                    label: f.name(c.first_name, c.last_initial, true),
                     sublabel: [c.profession_name, c.district_name].filter(Boolean).join(" · "),
                     href: `/candidate/${c.id}`,
                     kind: "area" as const,
                     radiusM: 1000,
                   }))}
               />
-              <p className="mt-1 text-xs text-slate-500">
-                Nomzodlar joylashuvi taxminiy (~1 km) koʻrsatiladi — aniq manzillar hech qachon chiqmaydi.
-              </p>
+              <p className="mt-1 text-xs text-slate-500">{t("search.candidateMapNote")}</p>
             </div>
           ) : null}
           {rows.length === 0 ? (
             <div className="xl:col-span-2">
               <EmptyState
-                title="Mos nomzod topilmadi"
-                description="Radiusni kengaytiring yoki qoʻshni tumanni tanlang. Vakansiya joylasangiz, nomzodlar oʻzlari ariza yuboradi."
+                title={t("search.noCandidates")}
+                description={t("search.noCandidatesText")}
                 action={
                   <Link href="/dashboard/vacancies/new" className="text-brand-700 text-sm font-medium hover:underline">
-                    Vakansiya joylash
+                    {t("search.postVacancy")}
                   </Link>
                 }
               />

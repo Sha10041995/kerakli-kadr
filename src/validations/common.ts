@@ -1,9 +1,19 @@
 import { z } from "zod";
 
+// Default messages are dictionary keys (translated by FieldError / tr()).
+z.config({
+  customError: (issue) => {
+    if (issue.code === "too_small" && issue.origin === "string") return `validation.minChars?min=${issue.minimum}`;
+    if (issue.code === "too_big" && issue.origin === "string") return `validation.maxChars?max=${issue.maximum}`;
+    if (issue.code === "invalid_type" && issue.input === undefined) return "validation.required";
+    return "validation.invalid";
+  },
+});
+
 export const idSchema = z.number().int().positive();
 export const optionalId = z.number().int().positive().nullable().optional();
 // z.guid(): any 8-4-4-4-12 hex id (Postgres uuid accepts non-RFC variants too).
-export const uuidSchema = z.guid({ error: "Notoʻgʻri identifikator" });
+export const uuidSchema = z.guid({ error: "validation.invalidId" });
 
 /** +998 90 123 45 67 → +998901234567 */
 export function normalizePhone(value: string): string {
@@ -17,7 +27,7 @@ export const phoneSchema = z
   .string()
   .trim()
   .transform(normalizePhone)
-  .pipe(z.string().regex(/^\+998\d{9}$/, { error: "Telefon raqam +998 XX XXX XX XX formatida boʻlsin" }));
+  .pipe(z.string().regex(/^\+998\d{9}$/, { error: "validation.phone" }));
 
 export const optionalPhone = z
   .string()
@@ -27,7 +37,7 @@ export const optionalPhone = z
   .pipe(
     z
       .string()
-      .regex(/^\+998\d{9}$/, { error: "Telefon raqam +998 XX XXX XX XX formatida boʻlsin" })
+      .regex(/^\+998\d{9}$/, { error: "validation.phone" })
       .optional(),
   );
 
@@ -46,14 +56,14 @@ export const safeUrl = z
   .string()
   .trim()
   .max(500)
-  .refine((v) => /^https?:\/\/[^\s]+$/i.test(v), { error: "Havola http:// yoki https:// bilan boshlansin" });
+  .refine((v) => /^https?:\/\/[^\s]+$/i.test(v), { error: "validation.url" });
 
 /** Plain text field: trims and strips control characters (React escapes HTML on render). */
 export const text = (max: number) =>
   z
     .string()
     .transform((v) => v.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim())
-    .pipe(z.string().max(max, { error: `Koʻpi bilan ${max} ta belgi` }));
+    .pipe(z.string().max(max, { error: `validation.maxChars?max=${max}` }));
 
 export function fieldErrors(error: z.ZodError): Record<string, string[]> {
   const out: Record<string, string[]> = {};

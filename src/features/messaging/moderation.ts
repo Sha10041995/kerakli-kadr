@@ -4,7 +4,8 @@
 
 export type MessageFlag = "link" | "phone" | "fraud" | "abuse";
 
-export type MessageAnalysis = { flagged: boolean; flags: MessageFlag[]; warning: string | null };
+/** `warning` is Uzbek; `warningKey` is a translatable message key ("messaging.warn*"). */
+export type MessageAnalysis = { flagged: boolean; flags: MessageFlag[]; warning: string | null; warningKey: string | null };
 
 const LINK_RE = /(https?:\/\/|www\.|t\.me\/|bit\.ly|wa\.me\/)/i;
 const PHONE_RE = /(\+?998[\s-]?)?\(?\d{2}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}/;
@@ -28,12 +29,21 @@ export function analyzeMessage(body: string): MessageAnalysis {
   if (ABUSE_PATTERNS.some((re) => re.test(body))) flags.push("abuse");
 
   let warning: string | null = null;
+  let warningKey: string | null = null;
   if (flags.includes("fraud")) {
     warning = "Diqqat: hech qachon karta maʼlumotlari, SMS-kod yoki oldindan toʻlov yubormang.";
+    warningKey = "messaging.warnFraud";
   } else if (flags.includes("link")) {
     warning = "Xabarda havola bor. Notanish havolalarni ochishda ehtiyot boʻling.";
+    warningKey = "messaging.warnLink";
   } else if (flags.includes("phone")) {
     warning = "Telefon raqamingizni faqat ishonchli ish beruvchiga bering.";
+    warningKey = "messaging.warnPhone";
   }
-  return { flagged: flags.includes("fraud") || flags.includes("link") || flags.includes("abuse"), flags, warning };
+  return {
+    flagged: flags.includes("fraud") || flags.includes("link") || flags.includes("abuse"),
+    flags,
+    warning,
+    warningKey,
+  };
 }

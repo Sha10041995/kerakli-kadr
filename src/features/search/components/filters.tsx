@@ -8,7 +8,9 @@ import { ProfessionSelect } from "@/features/catalog/components/profession-selec
 import type { CategoryWithProfessions } from "@/features/catalog/queries";
 import type { LocationOption } from "@/features/locations/queries";
 import type { CandidateSearch, VacancySearch } from "@/features/search/params";
-import { AVAILABILITY_LABELS, EMPLOYMENT_TYPE_LABELS, RADIUS_OPTIONS, options } from "@/lib/i18n/uz";
+import { enumOptions } from "@/lib/i18n/dictionary";
+import { getI18n } from "@/lib/i18n/server";
+import { RADIUS_OPTIONS } from "@/features/search/radius";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -19,20 +21,21 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Shell({ action, children, resetHref }: { action: string; children: React.ReactNode; resetHref: string }) {
+async function Shell({ action, children, resetHref }: { action: string; children: React.ReactNode; resetHref: string }) {
+  const { t } = await getI18n();
   return (
-    <MobileCollapsible label="Filtrlar">
+    <MobileCollapsible label={t("search.filters")}>
       <GetForm action={action} className="space-y-4 p-4">
         {children}
         <div className="flex gap-2 pt-2">
           <Button type="submit" className="flex-1">
-            Qoʻllash
+            {t("search.apply")}
           </Button>
           <Link
             href={resetHref}
             className="inline-flex h-10 items-center rounded-lg px-3 text-sm text-slate-600 hover:bg-slate-100"
           >
-            Tozalash
+            {t("search.reset")}
           </Link>
         </div>
       </GetForm>
@@ -40,15 +43,16 @@ function Shell({ action, children, resetHref }: { action: string; children: Reac
   );
 }
 
-function RadiusSelect({ value }: { value?: number }) {
+async function RadiusSelect({ value }: { value?: number }) {
+  const { t } = await getI18n();
   return (
     <div>
-      <Label htmlFor="f-radius">Radius</Label>
+      <Label htmlFor="f-radius">{t("search.radius")}</Label>
       <Select id="f-radius" name="radius" defaultValue={value ?? ""}>
-        <option value="">Hudud boʻyicha</option>
+        <option value="">{t("search.byArea")}</option>
         {RADIUS_OPTIONS.map((r) => (
           <option key={r} value={r}>
-            {r} km
+            {t("search.km", { n: r })}
           </option>
         ))}
       </Select>
@@ -56,7 +60,7 @@ function RadiusSelect({ value }: { value?: number }) {
   );
 }
 
-export function VacancyFilters({
+export async function VacancyFilters({
   search,
   regions,
   catalog,
@@ -67,13 +71,26 @@ export function VacancyFilters({
   catalog: CategoryWithProfessions[];
   action?: string;
 }) {
+  const { t, d } = await getI18n();
   return (
     <Shell action={action} resetHref={action}>
-      <Section title="Qidiruv">
-        <Input name="q" defaultValue={search.q} placeholder="Lavozim yoki kasb" aria-label="Kalit soʻz" maxLength={80} />
-        <ProfessionSelect name="profession" catalog={catalog} defaultValue={search.profession ?? ""} aria-label="Kasb" />
+      <Section title={t("search.searchSection")}>
+        <Input
+          name="q"
+          defaultValue={search.q}
+          placeholder={t("search.jobKeyword")}
+          aria-label={t("search.keyword")}
+          maxLength={80}
+        />
+        <ProfessionSelect
+          name="profession"
+          catalog={catalog}
+          defaultValue={search.profession ?? ""}
+          aria-label={t("search.profession")}
+          placeholder={t("search.allProfessions")}
+        />
       </Section>
-      <Section title="Hudud">
+      <Section title={t("search.area")}>
         <LocationPicker
           regions={regions}
           compact
@@ -90,45 +107,45 @@ export function VacancyFilters({
           <>
             <input type="hidden" name="lat" value={search.lat} />
             <input type="hidden" name="lng" value={search.lng} />
-            <p className="text-xs text-slate-500">GPS joylashuvingiz boʻyicha</p>
+            <p className="text-xs text-slate-500">{t("search.byGps")}</p>
           </>
         ) : null}
       </Section>
-      <Section title="Ish turi">
-        {options(EMPLOYMENT_TYPE_LABELS).map((o) => (
+      <Section title={t("search.employmentType")}>
+        {enumOptions(d.enums.employmentType).map((o) => (
           <Checkbox key={o.value} name="type" value={o.value} defaultChecked={search.types.includes(o.value)} label={o.label} />
         ))}
       </Section>
-      <Section title="Maosh va tajriba">
+      <Section title={t("search.salaryAndExperience")}>
         <div>
-          <Label htmlFor="f-salary">Maosh (kamida, soʻm)</Label>
+          <Label htmlFor="f-salary">{t("search.minSalary")}</Label>
           <Input id="f-salary" name="salary" type="number" min={0} step={100000} defaultValue={search.salary} />
         </div>
         <div>
-          <Label htmlFor="f-exp">Mening tajribam (yil)</Label>
+          <Label htmlFor="f-exp">{t("search.myExperience")}</Label>
           <Input id="f-exp" name="exp" type="number" min={0} max={50} defaultValue={search.exp} />
         </div>
       </Section>
-      <Section title="Qoʻshimcha">
-        <Checkbox name="urgent" value="1" defaultChecked={search.urgent} label="Shoshilinch" />
-        <Checkbox name="remote" value="1" defaultChecked={search.remote} label="Masofaviy" />
-        <Checkbox name="transport" value="1" defaultChecked={search.transport} label="Transport beriladi" />
-        <Checkbox name="housing" value="1" defaultChecked={search.housing} label="Turar joy beriladi" />
-        <Checkbox name="verified" value="1" defaultChecked={search.verified} label="Faqat tasdiqlangan ish beruvchilar" />
+      <Section title={t("search.extra")}>
+        <Checkbox name="urgent" value="1" defaultChecked={search.urgent} label={t("search.urgent")} />
+        <Checkbox name="remote" value="1" defaultChecked={search.remote} label={t("search.remote")} />
+        <Checkbox name="transport" value="1" defaultChecked={search.transport} label={t("search.transport")} />
+        <Checkbox name="housing" value="1" defaultChecked={search.housing} label={t("search.housing")} />
+        <Checkbox name="verified" value="1" defaultChecked={search.verified} label={t("search.verifiedEmployers")} />
       </Section>
-      <Section title="Saralash">
-        <Select name="sort" defaultValue={search.sort} aria-label="Saralash">
-          <option value="relevance">Hudud va moslik</option>
-          <option value="distance">Eng yaqin</option>
-          <option value="newest">Eng yangi</option>
-          <option value="salary">Eng yuqori maosh</option>
+      <Section title={t("search.sort")}>
+        <Select name="sort" defaultValue={search.sort} aria-label={t("search.sort")}>
+          <option value="relevance">{t("search.sortRelevance")}</option>
+          <option value="distance">{t("search.sortDistance")}</option>
+          <option value="newest">{t("search.sortNewest")}</option>
+          <option value="salary">{t("search.sortSalary")}</option>
         </Select>
       </Section>
     </Shell>
   );
 }
 
-export function CandidateFilters({
+export async function CandidateFilters({
   search,
   regions,
   catalog,
@@ -139,13 +156,26 @@ export function CandidateFilters({
   catalog: CategoryWithProfessions[];
   action?: string;
 }) {
+  const { t, d } = await getI18n();
   return (
     <Shell action={action} resetHref={action}>
-      <Section title="Qidiruv">
-        <Input name="q" defaultValue={search.q} placeholder="Kasb yoki koʻnikma" aria-label="Kalit soʻz" maxLength={80} />
-        <ProfessionSelect name="profession" catalog={catalog} defaultValue={search.profession ?? ""} aria-label="Kasb" />
+      <Section title={t("search.searchSection")}>
+        <Input
+          name="q"
+          defaultValue={search.q}
+          placeholder={t("search.talentKeyword")}
+          aria-label={t("search.keyword")}
+          maxLength={80}
+        />
+        <ProfessionSelect
+          name="profession"
+          catalog={catalog}
+          defaultValue={search.profession ?? ""}
+          aria-label={t("search.profession")}
+          placeholder={t("search.allProfessions")}
+        />
       </Section>
-      <Section title="Hudud">
+      <Section title={t("search.area")}>
         <LocationPicker
           regions={regions}
           compact
@@ -165,8 +195,8 @@ export function CandidateFilters({
           </>
         ) : null}
       </Section>
-      <Section title="Mavjudlik">
-        {options(AVAILABILITY_LABELS)
+      <Section title={t("search.availability")}>
+        {enumOptions(d.enums.availability)
           .filter((o) => o.value !== "not_available")
           .map((o) => (
             <Checkbox
@@ -178,43 +208,43 @@ export function CandidateFilters({
             />
           ))}
       </Section>
-      <Section title="Ish turi">
-        {options(EMPLOYMENT_TYPE_LABELS).map((o) => (
+      <Section title={t("search.employmentType")}>
+        {enumOptions(d.enums.employmentType).map((o) => (
           <Checkbox key={o.value} name="type" value={o.value} defaultChecked={search.types.includes(o.value)} label={o.label} />
         ))}
       </Section>
-      <Section title="Tajriba va maosh">
+      <Section title={t("search.experienceAndSalary")}>
         <div>
-          <Label htmlFor="c-exp">Tajriba (kamida, yil)</Label>
+          <Label htmlFor="c-exp">{t("search.minExperience")}</Label>
           <Input id="c-exp" name="exp" type="number" min={0} max={50} defaultValue={search.exp} />
         </div>
         <div>
-          <Label htmlFor="c-salary">Byudjet (koʻpi bilan, soʻm)</Label>
+          <Label htmlFor="c-salary">{t("search.budget")}</Label>
           <Input id="c-salary" name="salary" type="number" min={0} step={100000} defaultValue={search.salary} />
         </div>
         <div>
-          <Label htmlFor="c-rating">Reyting (kamida)</Label>
+          <Label htmlFor="c-rating">{t("search.minRating")}</Label>
           <Select id="c-rating" name="rating" defaultValue={search.rating ?? ""}>
-            <option value="">Muhim emas</option>
+            <option value="">{t("search.notImportant")}</option>
             {[3, 4, 5].map((r) => (
               <option key={r} value={r}>
-                {r}★ va yuqori
+                {t("search.starsAndUp", { n: r })}
               </option>
             ))}
           </Select>
         </div>
       </Section>
-      <Section title="Qoʻshimcha">
-        <Checkbox name="verified" value="1" defaultChecked={search.verified} label="Faqat tasdiqlanganlar" />
-        <Checkbox name="transport" value="1" defaultChecked={search.transport} label="Transporti bor" />
-        <Checkbox name="remote" value="1" defaultChecked={search.remote} label="Masofadan ishlay oladi" />
+      <Section title={t("search.extra")}>
+        <Checkbox name="verified" value="1" defaultChecked={search.verified} label={t("search.verifiedOnly")} />
+        <Checkbox name="transport" value="1" defaultChecked={search.transport} label={t("search.hasTransport")} />
+        <Checkbox name="remote" value="1" defaultChecked={search.remote} label={t("search.canRemote")} />
       </Section>
-      <Section title="Saralash">
-        <Select name="sort" defaultValue={search.sort} aria-label="Saralash">
-          <option value="relevance">Hudud va moslik</option>
-          <option value="distance">Eng yaqin</option>
-          <option value="rating">Reyting</option>
-          <option value="experience">Tajriba</option>
+      <Section title={t("search.sort")}>
+        <Select name="sort" defaultValue={search.sort} aria-label={t("search.sort")}>
+          <option value="relevance">{t("search.sortRelevance")}</option>
+          <option value="distance">{t("search.sortDistance")}</option>
+          <option value="rating">{t("search.sortRating")}</option>
+          <option value="experience">{t("search.sortExperience")}</option>
         </Select>
       </Section>
     </Shell>

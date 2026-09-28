@@ -9,30 +9,9 @@ import { getRegions } from "@/features/locations/queries";
 import { SearchBar } from "@/features/search/components/search-bar";
 import { VacancyCard } from "@/features/vacancies/components/vacancy-card";
 import { latestVacancies } from "@/features/vacancies/queries";
-import { formatNumber } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
 
-const FAQ = [
-  {
-    q: "Platformadan foydalanish pullikmi?",
-    a: "Yoʻq. Ish izlovchilar uchun profil, qidiruv va ariza yuborish bepul. Ish beruvchilar bepul tarifda ham vakansiya joylay oladi; qoʻshimcha imkoniyatlar pullik tariflarda.",
-  },
-  {
-    q: "Uy manzilim boshqalarga koʻrinadimi?",
-    a: "Hech qachon. Profilingizda faqat tuman yoki taxminiy masofa (masalan, “2,8 km uzoqlikda”) koʻrsatiladi. Koordinatalar ~1 km aniqlikkacha yaxlitlanadi.",
-  },
-  {
-    q: "Telefon raqamim kimga koʻrinadi?",
-    a: "Telefon raqamingiz ommaga chiqmaydi. Uni faqat siz ariza yuborgan ish beruvchi koʻra oladi. Qolgan muloqot platforma ichidagi chat orqali boʻladi.",
-  },
-  {
-    q: "MATCH SCORE nima?",
-    a: "Bu nomzodning aniq vakansiyaga qanchalik mos kelishini koʻrsatadigan foiz: hudud, masofa, kasb, koʻnikma, tajriba va boshqa omillar asosida hisoblanadi. Bu inson reytingi emas va ishga olish qarorini doim inson qabul qiladi.",
-  },
-  {
-    q: "Qanday qilib “tasdiqlangan” belgisi olaman?",
-    a: "Kabinetingizdagi “Tasdiqlash” boʻlimidan telefon, shaxs, sertifikat yoki kompaniya hujjatlarini yuboring. Moderatorlar tekshirib, belgini beradi.",
-  },
-];
+const FAQ = [1, 2, 3, 4, 5] as const;
 
 export default async function HomePage() {
   const [regions, catalog, categories, regionStats, talent, jobs, candidates, { plans }] = await Promise.all([
@@ -45,6 +24,8 @@ export default async function HomePage() {
     featuredCandidates(4),
     getPlans(),
   ]);
+  const { t, d, f } = await getI18n();
+  const formatNumber = f.number;
   const professions = catalog.flatMap((c) => c.professions.map((p) => ({ id: p.id, name: p.name, category: c.name })));
   const professionSlugs = new Map(catalog.flatMap((c) => c.professions.map((p) => [p.id, p.slug] as const)));
 
@@ -55,20 +36,16 @@ export default async function HomePage() {
         <Container className="relative py-12 sm:py-20">
           <div className="max-w-3xl">
             <Badge tone="warning" className="mb-4">
-              Oʻzbekistonning hududiy ish va kadrlar platformasi
+              {t("home.badge")}
             </Badge>
-            <h1 className="text-3xl leading-tight font-extrabold tracking-tight sm:text-5xl">
-              Kadr ham, ish ham — oʻz hududingizdan toping.
-            </h1>
-            <p className="text-brand-50 mt-4 text-base sm:text-lg">
-              Tumaningiz, shaharingiz, qishlogʻingiz yoki mahallangizdagi imkoniyatlarni bir joydan toping.
-            </p>
+            <h1 className="text-3xl leading-tight font-extrabold tracking-tight sm:text-5xl">{t("common.siteTagline")}</h1>
+            <p className="text-brand-50 mt-4 text-base sm:text-lg">{t("home.lead")}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <ButtonLink href="/jobs" variant="accent" size="lg">
-                Ish qidiraman
+                {t("home.findJob")}
               </ButtonLink>
               <ButtonLink href="/candidates" size="lg" className="text-brand-800 hover:bg-brand-50 bg-white">
-                Kadr qidiraman
+                {t("home.findTalent")}
               </ButtonLink>
             </div>
           </div>
@@ -83,18 +60,18 @@ export default async function HomePage() {
           <Container className="py-10">
             <div className="mb-6 flex items-end justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">Hududingizdagi kadrlar</h2>
-                <p className="text-sm text-slate-600">Mahalliy mutaxassislar xaritasi — kim qayerda ishlashga tayyor.</p>
+                <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">{t("home.localTalent")}</h2>
+                <p className="text-sm text-slate-600">{t("home.localTalentText")}</p>
               </div>
               <Link href="/candidates" className="text-brand-700 text-sm font-medium hover:underline">
-                Barchasi →
+                {t("home.seeAll")}
               </Link>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {talent.map((t) => (
+              {talent.map((row) => (
                 <Link
-                  key={t.profession_id}
-                  href={`/candidates/${t.profession_slug}`}
+                  key={row.profession_id}
+                  href={`/candidates/${row.profession_slug}`}
                   className="group hover:border-brand-300 hover:bg-brand-50 flex items-center gap-3 rounded-xl border border-slate-200 p-4"
                 >
                   <span className="bg-brand-100 text-brand-700 inline-flex size-10 items-center justify-center rounded-full">
@@ -102,9 +79,14 @@ export default async function HomePage() {
                   </span>
                   <span>
                     <span className="group-hover:text-brand-800 block font-semibold text-slate-900">
-                      {formatNumber(Number(t.candidate_count))} ta {t.profession_name?.toLowerCase()}
+                      {t("home.talentCount", {
+                        n: formatNumber(Number(row.candidate_count)),
+                        profession: row.profession_name?.toLowerCase() ?? "",
+                      })}
                     </span>
-                    <span className="text-xs text-slate-500">{formatNumber(Number(t.vacancy_count))} ta ochiq vakansiya</span>
+                    <span className="text-xs text-slate-500">
+                      {t("home.openVacancies", { n: formatNumber(Number(row.vacancy_count)) })}
+                    </span>
                   </span>
                 </Link>
               ))}
@@ -114,7 +96,7 @@ export default async function HomePage() {
       ) : null}
 
       <Container className="py-12">
-        <h2 className="mb-6 text-xl font-bold text-slate-900 sm:text-2xl">Mashhur yoʻnalishlar</h2>
+        <h2 className="mb-6 text-xl font-bold text-slate-900 sm:text-2xl">{t("home.popularCategories")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {(categories.length
             ? categories
@@ -137,7 +119,10 @@ export default async function HomePage() {
               </span>
               <p className="mt-2 font-semibold text-slate-900">{c.name_uz}</p>
               <p className="text-xs text-slate-500">
-                {formatNumber(Number(c.vacancy_count ?? 0))} vakansiya · {formatNumber(Number(c.candidate_count ?? 0))} mutaxassis
+                {t("home.categoryStats", {
+                  v: formatNumber(Number(c.vacancy_count ?? 0)),
+                  c: formatNumber(Number(c.candidate_count ?? 0)),
+                })}
               </p>
             </Link>
           ))}
@@ -148,9 +133,9 @@ export default async function HomePage() {
         <Container className="grid gap-10 pb-12 lg:grid-cols-2">
           <section>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">Yangi vakansiyalar</h2>
+              <h2 className="text-xl font-bold text-slate-900">{t("home.newVacancies")}</h2>
               <Link href="/jobs" className="text-brand-700 text-sm font-medium hover:underline">
-                Barchasi →
+                {t("home.seeAll")}
               </Link>
             </div>
             <div className="space-y-4">
@@ -161,9 +146,9 @@ export default async function HomePage() {
           </section>
           <section>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">Ishga tayyor mutaxassislar</h2>
+              <h2 className="text-xl font-bold text-slate-900">{t("home.readyCandidates")}</h2>
               <Link href="/candidates" className="text-brand-700 text-sm font-medium hover:underline">
-                Barchasi →
+                {t("home.seeAll")}
               </Link>
             </div>
             <div className="space-y-4">
@@ -177,7 +162,7 @@ export default async function HomePage() {
 
       <section className="bg-white py-12">
         <Container>
-          <h2 className="mb-6 text-xl font-bold text-slate-900 sm:text-2xl">Viloyatlar boʻyicha</h2>
+          <h2 className="mb-6 text-xl font-bold text-slate-900 sm:text-2xl">{t("home.byRegion")}</h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {(regionStats.length
               ? regionStats
@@ -198,21 +183,21 @@ export default async function HomePage() {
           </div>
           {professionSlugs.size > 0 ? (
             <p className="mt-6 text-xs text-slate-500">
-              Mashhur qidiruvlar:{" "}
+              {t("home.popularSearches")}{" "}
               <Link className="hover:underline" href="/jobs/xorazm/urganch-shahri">
-                Urganchda ish
+                {t("home.ps1")}
               </Link>{" "}
               ·{" "}
               <Link className="hover:underline" href="/jobs/qashqadaryo/kitob">
-                Kitob tumanida ish
+                {t("home.ps2")}
               </Link>{" "}
               ·{" "}
               <Link className="hover:underline" href="/candidates/toshkent/elektrik">
-                Toshkentda elektriklar
+                {t("home.ps3")}
               </Link>{" "}
               ·{" "}
               <Link className="hover:underline" href="/candidates/qoraqalpogiston/qongirot/traktorchi">
-                Qoʻngʻirotda traktorchilar
+                {t("home.ps4")}
               </Link>
             </p>
           ) : null}
@@ -220,30 +205,30 @@ export default async function HomePage() {
       </section>
 
       <Container className="py-12">
-        <h2 className="mb-8 text-center text-xl font-bold text-slate-900 sm:text-2xl">Qanday ishlaydi?</h2>
+        <h2 className="mb-8 text-center text-xl font-bold text-slate-900 sm:text-2xl">{t("home.howItWorks")}</h2>
         <div className="grid gap-4 md:grid-cols-3">
           {[
             {
               icon: PinIcon,
-              t: "1. Hududingizni tanlang",
-              d: "Viloyat → tuman → qishloq → mahalla. Yoki “Mening joylashuvim” tugmasini bosing.",
+              title: t("home.step1"),
+              d: t("home.step1Text"),
             },
             {
               icon: BriefcaseIcon,
-              t: "2. Kasbni tanlang",
-              d: "Elektrik, haydovchi, oshpaz, dasturchi… 50 dan ortiq kasblar katalogi.",
+              title: t("home.step2"),
+              d: t("home.step2Text"),
             },
             {
               icon: TargetIcon,
-              t: "3. Eng yaqinini toping",
-              d: "Natijalar avval mahallangiz, keyin tuman, keyin qoʻshni hududlar boʻyicha chiqadi.",
+              title: t("home.step3"),
+              d: t("home.step3Text"),
             },
-          ].map(({ icon: Icon, t, d }) => (
-            <Card key={t} className="text-center">
+          ].map(({ icon: Icon, title, d }) => (
+            <Card key={title} className="text-center">
               <span className="bg-brand-50 text-brand-700 mx-auto inline-flex size-12 items-center justify-center rounded-full">
                 <Icon size={24} />
               </span>
-              <h3 className="mt-3 font-semibold text-slate-900">{t}</h3>
+              <h3 className="mt-3 font-semibold text-slate-900">{title}</h3>
               <p className="mt-1 text-sm text-slate-600">{d}</p>
             </Card>
           ))}
@@ -252,14 +237,9 @@ export default async function HomePage() {
 
       <Container className="grid gap-4 pb-12 md:grid-cols-2">
         <Card className="bg-slate-900 text-white">
-          <h2 className="text-xl font-bold">Ish beruvchilar uchun</h2>
+          <h2 className="text-xl font-bold">{t("home.forEmployers")}</h2>
           <ul className="mt-4 space-y-2 text-sm text-slate-200">
-            {[
-              "Vakansiyani 3 daqiqada joylang",
-              "Tizim mos nomzodlarni MATCH SCORE bilan tavsiya qiladi",
-              "Arizalarni bosqichma-bosqich boshqaring",
-              "Nomzodlar bilan xavfsiz chat",
-            ].map((x) => (
+            {Object.values(d.home.employerPoints).map((x) => (
               <li key={x} className="flex gap-2">
                 <CheckIcon size={18} className="text-accent-400 shrink-0" />
                 {x}
@@ -267,18 +247,13 @@ export default async function HomePage() {
             ))}
           </ul>
           <ButtonLink href="/register?role=employer" variant="accent" className="mt-6">
-            Vakansiya joylash
+            {t("home.postVacancy")}
           </ButtonLink>
         </Card>
         <Card className="bg-brand-50">
-          <h2 className="text-xl font-bold text-slate-900">Ish izlovchilar uchun</h2>
+          <h2 className="text-xl font-bold text-slate-900">{t("home.forSeekers")}</h2>
           <ul className="mt-4 space-y-2 text-sm text-slate-700">
-            {[
-              "Bepul profil va avtomatik CV",
-              "Uyingizga yaqin ishlar birinchi",
-              "Yangi mos vakansiya chiqsa — bildirishnoma",
-              "Manzilingiz va raqamingiz himoyalangan",
-            ].map((x) => (
+            {Object.values(d.home.seekerPoints).map((x) => (
               <li key={x} className="flex gap-2">
                 <ShieldIcon size={18} className="text-brand-600 shrink-0" />
                 {x}
@@ -286,7 +261,7 @@ export default async function HomePage() {
             ))}
           </ul>
           <ButtonLink href="/register?role=job_seeker" className="mt-6">
-            Profil yaratish
+            {t("home.createProfile")}
           </ButtonLink>
         </Card>
       </Container>
@@ -295,9 +270,9 @@ export default async function HomePage() {
         <section className="bg-white py-12">
           <Container>
             <div className="mb-6 flex items-end justify-between">
-              <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">Tariflar</h2>
+              <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">{t("home.plans")}</h2>
               <Link href="/pricing" className="text-brand-700 text-sm font-medium hover:underline">
-                Batafsil →
+                {t("home.moreLink")}
               </Link>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -305,12 +280,12 @@ export default async function HomePage() {
                 <Card key={p.id} className={p.code === "PRO" ? "border-brand-500 ring-brand-500 ring-2" : undefined}>
                   <p className="font-semibold text-slate-900">{p.name_uz}</p>
                   <p className="mt-1 text-2xl font-extrabold text-slate-900">
-                    {p.price_uzs ? `${formatNumber(p.price_uzs)} soʻm` : "Bepul"}
+                    {p.price_uzs ? t("home.priceSom", { price: formatNumber(p.price_uzs) }) : t("home.free")}
                   </p>
                   {p.price_uzs ? (
-                    <p className="text-xs text-slate-500">oyiga</p>
+                    <p className="text-xs text-slate-500">{t("home.perMonth")}</p>
                   ) : (
-                    <p className="text-xs text-slate-500">doimiy</p>
+                    <p className="text-xs text-slate-500">{t("home.forever")}</p>
                   )}
                 </Card>
               ))}
@@ -320,12 +295,12 @@ export default async function HomePage() {
       ) : null}
 
       <Container className="py-12">
-        <h2 className="mb-6 text-xl font-bold text-slate-900 sm:text-2xl">Koʻp soʻraladigan savollar</h2>
+        <h2 className="mb-6 text-xl font-bold text-slate-900 sm:text-2xl">{t("home.faqTitle")}</h2>
         <div className="space-y-3">
-          {FAQ.map((f) => (
-            <details key={f.q} className="rounded-xl border border-slate-200 bg-white p-4">
-              <summary className="cursor-pointer font-medium text-slate-900">{f.q}</summary>
-              <p className="mt-2 text-sm text-slate-600">{f.a}</p>
+          {FAQ.map((n) => (
+            <details key={n} className="rounded-xl border border-slate-200 bg-white p-4">
+              <summary className="cursor-pointer font-medium text-slate-900">{t(`home.faq.q${n}`)}</summary>
+              <p className="mt-2 text-sm text-slate-600">{t(`home.faq.a${n}`)}</p>
             </details>
           ))}
         </div>
